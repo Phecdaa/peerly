@@ -68,37 +68,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-sm shadow-zinc-900/5">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-semibold text-zinc-900">Peerly</h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Login untuk booking sesi belajar.
+    <div className="flex min-h-screen items-center justify-center bg-zinc-100 px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-lg shadow-zinc-900/10">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+            Peerly
+          </h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Masuk atau daftar untuk booking sesi belajar dengan mentor.
           </p>
         </div>
 
         <div className="mb-6 flex rounded-full bg-zinc-100 p-1 text-sm font-medium">
           <button
             type="button"
-            className={`flex-1 rounded-full px-4 py-2 ${
+            className={`flex-1 rounded-full px-4 py-2.5 transition-all ${
               mode === "login"
                 ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500"
+                : "text-zinc-500 hover:text-zinc-700"
             }`}
             onClick={() => setMode("login")}
           >
-            Login
+            Masuk
           </button>
           <button
             type="button"
-            className={`flex-1 rounded-full px-4 py-2 ${
+            className={`flex-1 rounded-full px-4 py-2.5 transition-all ${
               mode === "register"
                 ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500"
+                : "text-zinc-500 hover:text-zinc-700"
             }`}
             onClick={() => setMode("register")}
           >
-            Register
+            Daftar
           </button>
         </div>
 
@@ -114,6 +116,7 @@ export default function LoginPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="input"
+                placeholder="Contoh: Ahmad Rizki"
               />
             </div>
           )}
@@ -128,6 +131,8 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input"
+              placeholder="nama@email.com"
+              autoComplete="email"
             />
           </div>
 
@@ -141,31 +146,33 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input"
+              placeholder="Min. 6 karakter"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600" aria-live="polite">
+            <div
+              className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              role="alert"
+              aria-live="polite"
+            >
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary mt-2 w-full"
+            className="btn btn-primary mt-2 w-full py-3 text-sm"
           >
             {loading
               ? "Memproses..."
               : mode === "login"
-              ? "Login"
-              : "Register"}
+              ? "Masuk"
+              : "Daftar"}
           </button>
         </form>
-
-        <p className="mt-4 text-center text-xs text-zinc-500">
-          Dev: matikan email confirmation di Supabase Auth.
-        </p>
       </div>
     </div>
   );
