@@ -234,6 +234,7 @@ with check (public.is_admin(auth.uid()));
 alter table public.rooms enable row level security;
 
 -- Participants, mentor, and admins can read room details
+drop policy if exists "Rooms: participants and mentor read" on public.rooms;
 create policy "Rooms: participants and mentor read"
 on public.rooms
 for select
@@ -252,6 +253,7 @@ using (
 alter table public.room_participants enable row level security;
 
 -- Participants themselves, mentor, and admins can read participants list
+drop policy if exists "RoomParticipants: participants and mentor read" on public.room_participants;
 create policy "RoomParticipants: participants and mentor read"
 on public.room_participants
 for select
@@ -271,6 +273,7 @@ using (
 alter table public.room_messages enable row level security;
 
 -- Participants & mentor & admins can read messages
+drop policy if exists "RoomMessages: participants and mentor read" on public.room_messages;
 create policy "RoomMessages: participants and mentor read"
 on public.room_messages
 for select
@@ -291,6 +294,7 @@ using (
 );
 
 -- Participants & mentor can insert messages while they are part of the room
+drop policy if exists "RoomMessages: participants insert" on public.room_messages;
 create policy "RoomMessages: participants insert"
 on public.room_messages
 for insert
@@ -314,6 +318,7 @@ with check (
 alter table public.session_notes enable row level security;
 
 -- Participants and mentor can read notes
+drop policy if exists "SessionNotes: participants and mentor read" on public.session_notes;
 create policy "SessionNotes: participants and mentor read"
 on public.session_notes
 for select
@@ -329,6 +334,7 @@ using (
 );
 
 -- Mentor can insert/update their own notes
+drop policy if exists "SessionNotes: mentor manage own" on public.session_notes;
 create policy "SessionNotes: mentor manage own"
 on public.session_notes
 for all
@@ -340,23 +346,27 @@ with check (mentor_id = auth.uid() or public.is_admin(auth.uid()));
 alter table public.reports enable row level security;
 
 -- Reporter can see their own reports, admins can see all
+drop policy if exists "Reports: reporter read own" on public.reports;
 create policy "Reports: reporter read own"
 on public.reports
 for select
 using (reporter_id = auth.uid());
 
+drop policy if exists "Reports: admin read all" on public.reports;
 create policy "Reports: admin read all"
 on public.reports
 for select
 using (public.is_admin(auth.uid()));
 
 -- Any authenticated user can create reports for themselves
+drop policy if exists "Reports: users insert" on public.reports;
 create policy "Reports: users insert"
 on public.reports
 for insert
 with check (reporter_id = auth.uid());
 
 -- Admins can manage all reports
+drop policy if exists "Reports: admin manage all" on public.reports;
 create policy "Reports: admin manage all"
 on public.reports
 for all
@@ -368,6 +378,7 @@ with check (public.is_admin(auth.uid()));
 alter table public.admin_logs enable row level security;
 
 -- Only admins can read/write admin logs (or service_role bypasses RLS)
+drop policy if exists "AdminLogs: admins manage all" on public.admin_logs;
 create policy "AdminLogs: admins manage all"
 on public.admin_logs
 for all
@@ -379,11 +390,13 @@ with check (public.is_admin(auth.uid()));
 alter table public.wallet_entries enable row level security;
 
 -- Mentors can read their own wallet entries; admins can read all
+drop policy if exists "WalletEntries: mentor read own" on public.wallet_entries;
 create policy "WalletEntries: mentor read own"
 on public.wallet_entries
 for select
 using (mentor_id = auth.uid());
 
+drop policy if exists "WalletEntries: admin read all" on public.wallet_entries;
 create policy "WalletEntries: admin read all"
 on public.wallet_entries
 for select

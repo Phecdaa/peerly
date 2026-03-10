@@ -208,6 +208,9 @@ alter table public.payments
   add column if not exists idempotency_key text;
 
 alter table public.payments
+  drop constraint if exists payment_direction_check;
+
+alter table public.payments
   add constraint payment_direction_check
     check (direction in ('student_to_platform','platform_to_mentor'));
 
