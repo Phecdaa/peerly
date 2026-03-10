@@ -128,6 +128,7 @@ export async function POST(request: NextRequest) {
     .from("payments")
     .insert({
       booking_id: null,
+      room_id: room_id,
       amount: amountPerParticipant,
       platform_fee: amountPerParticipant * 0.1,
       mentor_amount: amountPerParticipant * 0.9,

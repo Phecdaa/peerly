@@ -82,6 +82,7 @@ create table if not exists public.rooms (
   mentor_id uuid not null references public.profiles (id) on delete restrict,
   host_id uuid not null references public.profiles (id) on delete restrict,
   availability_id int not null references public.availabilities (id) on delete restrict,
+  course_id int references public.courses (id) on delete set null,
   title text,
   description text,
   is_public boolean not null default false,
@@ -113,6 +114,9 @@ create table if not exists public.rooms (
 -- Link bookings to rooms to support multi-participant sessions
 alter table public.bookings
   add column if not exists room_id int references public.rooms (id) on delete set null;
+
+alter table public.rooms
+  add column if not exists course_id int references public.courses (id) on delete set null;
 
 -- ROOM PARTICIPANTS: host + invited learners with payment info
 create table if not exists public.room_participants (
@@ -196,6 +200,7 @@ create table if not exists public.wallet_entries (
 
 -- Extend PAYMENTS with provider & idempotency metadata for Stripe/mock integration
 alter table public.payments
+  add column if not exists room_id int references public.rooms (id) on delete set null,
   add column if not exists metadata jsonb,
   add column if not exists provider text,
   add column if not exists provider_payment_id text,

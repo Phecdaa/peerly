@@ -63,6 +63,12 @@ export default async function DashboardPage() {
                 Cari mentor
               </Link>
               <Link
+                href="/rooms"
+                className="btn btn-secondary h-9 rounded-full px-4 text-xs"
+              >
+                Room saya
+              </Link>
+              <Link
                 href="/bookings"
                 className="btn btn-secondary h-9 rounded-full px-4 text-xs"
               >
@@ -102,6 +108,12 @@ export default async function DashboardPage() {
                 className="btn btn-secondary h-9 rounded-full px-4 text-xs"
               >
                 Kelola availability
+              </Link>
+              <Link
+                href="/rooms"
+                className="btn btn-secondary h-9 rounded-full px-4 text-xs"
+              >
+                Room saya
               </Link>
               <Link
                 href="/bookings"

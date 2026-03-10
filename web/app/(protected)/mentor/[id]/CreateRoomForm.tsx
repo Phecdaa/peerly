@@ -10,16 +10,18 @@ type Slot = {
   end_ts: string;
   max_students: number;
   is_booked: boolean;
-  has_room?: boolean;
+  has_room: boolean;
 };
 
-export function BookingForm({
+export function CreateRoomForm({
   mentorId,
+  mentorName,
   mentorHourlyRate,
   courses,
   slots,
 }: {
   mentorId: string;
+  mentorName: string;
   mentorHourlyRate: number;
   courses: Course[];
   slots: Slot[];
@@ -27,18 +29,22 @@ export function BookingForm({
   const router = useRouter();
   const [courseId, setCourseId] = useState<number>(courses[0]?.id ?? 0);
   const [slot, setSlot] = useState<Slot | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [mode, setMode] = useState<"online" | "offline" | "hybrid">("online");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const availableSlots = slots.filter((s) => !s.is_booked);
+  const availableSlots = slots.filter((s) => !s.is_booked && !s.has_room);
 
   function formatSlot(s: Slot) {
     const start = new Date(s.start_ts);
     const end = new Date(s.end_ts);
-    return start.toLocaleString("id-ID", {
-      dateStyle: "short",
-      timeStyle: "short",
-    }) + " - " + end.toLocaleTimeString("id-ID", { timeStyle: "short" });
+    return (
+      start.toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" }) +
+      " - " +
+      end.toLocaleTimeString("id-ID", { timeStyle: "short" })
+    );
   }
 
   const durationMinutes = slot
@@ -48,6 +54,8 @@ export function BookingForm({
       )
     : 0;
   const totalPrice = (durationMinutes / 60) * mentorHourlyRate;
+  const perPerson =
+    slot && slot.max_students > 0 ? totalPrice / slot.max_students : totalPrice;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -59,25 +67,27 @@ export function BookingForm({
     setError(null);
 
     try {
-      const res = await fetch("/api/booking/request", {
+      const res = await fetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mentor_id: mentorId,
+          availability_id: slot.id,
           course_id: courseId,
-          start_ts: slot.start_ts,
-          end_ts: slot.end_ts,
+          title: title.trim() || null,
+          description: description.trim() || null,
+          mode,
+          is_public: false,
         }),
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.error ?? "Gagal request booking.");
+        setError(data.error ?? "Gagal buat room.");
         return;
       }
 
-      router.push("/dashboard");
+      router.push(`/rooms/${data.id}`);
       router.refresh();
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
@@ -96,6 +106,10 @@ export function BookingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <h3 className="text-sm font-semibold text-zinc-900">
+        Atau buat room grup untuk belajar bareng
+      </h3>
+
       <div>
         <label className="mb-1 block text-sm font-medium text-zinc-700">
           Mata kuliah
@@ -118,7 +132,9 @@ export function BookingForm({
           Slot tersedia
         </label>
         {availableSlots.length === 0 ? (
-          <p className="text-sm text-zinc-500">Tidak ada slot tersedia.</p>
+          <p className="text-sm text-zinc-500">
+            Tidak ada slot untuk room (semua sudah dipakai).
+          </p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {availableSlots.map((s) => (
@@ -141,16 +157,63 @@ export function BookingForm({
       </div>
 
       {slot && (
-        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="badge">
-              Durasi: {durationMinutes} menit
-            </span>
-            <span className="badge border-indigo-200 bg-indigo-50 text-indigo-800">
-              Total: Rp {totalPrice.toLocaleString()}
-            </span>
+        <>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-zinc-700">
+              Judul (opsional)
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input"
+              placeholder={`Sesi ${courses.find((c) => c.id === courseId)?.name ?? ""} dengan ${mentorName}`}
+            />
           </div>
-        </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-zinc-700">
+              Deskripsi (opsional)
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="textarea"
+              rows={2}
+              placeholder="Fokus materi yang ingin dipelajari..."
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-zinc-700">
+              Mode sesi
+            </label>
+            <select
+              value={mode}
+              onChange={(e) =>
+                setMode(e.target.value as "online" | "offline" | "hybrid")
+              }
+              className="select"
+            >
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="badge">Durasi: {durationMinutes} menit</span>
+              <span className="badge">Kapasitas: {slot.max_students} orang</span>
+              <span className="badge border-indigo-200 bg-indigo-50 text-indigo-800">
+                Total: Rp {totalPrice.toLocaleString()}
+              </span>
+              <span className="badge">
+                Per orang (~): Rp {Math.round(perPerson).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </>
       )}
 
       {error && (
@@ -164,7 +227,7 @@ export function BookingForm({
         disabled={loading || !slot}
         className="btn btn-primary w-full"
       >
-        {loading ? "Mengirim..." : "Request booking"}
+        {loading ? "Membuat..." : "Buat room"}
       </button>
     </form>
   );

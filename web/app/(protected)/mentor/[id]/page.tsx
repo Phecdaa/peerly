@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { BookingForm } from "./BookingForm";
+import { CreateRoomForm } from "./CreateRoomForm";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -38,6 +39,14 @@ export default async function MentorDetailPage({ params }: Params) {
     .order("start_ts", { ascending: true })
     .limit(50);
 
+  const availIds = (availabilities ?? []).map((a) => a.id);
+  const { data: activeRooms } = await supabase
+    .from("rooms")
+    .select("availability_id")
+    .in("availability_id", availIds.length ? availIds : [0])
+    .in("status", ["pending_payment", "waiting_mentor_approval", "scheduled", "ongoing"]);
+  const availWithRoom = new Set((activeRooms ?? []).map((r) => r.availability_id));
+
   const { data: bookingRanges } = await supabase
     .from("bookings")
     .select("start_ts, end_ts")
@@ -51,6 +60,7 @@ export default async function MentorDetailPage({ params }: Params) {
   const slots = (availabilities ?? []).map((a) => ({
     ...a,
     is_booked: bookedSet.has(`${a.start_ts}/${a.end_ts}`),
+    has_room: availWithRoom.has(a.id),
   }));
 
   const { data: mentorBookings } = await supabase
@@ -106,12 +116,22 @@ export default async function MentorDetailPage({ params }: Params) {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6">
-        <h2 className="mb-4 text-sm font-semibold text-zinc-900">
-          Pilih slot & request booking
-        </h2>
-        <BookingForm
+      <div className="rounded-2xl border border-zinc-200 bg-white p-6 space-y-6">
+        <div>
+          <h2 className="mb-4 text-sm font-semibold text-zinc-900">
+            Pilih slot & request booking 1-on-1
+          </h2>
+          <BookingForm
+            mentorId={id}
+            mentorHourlyRate={profile.hourly_rate ?? 0}
+            courses={courses}
+            slots={slots.filter((s) => !s.has_room)}
+          />
+        </div>
+        <hr className="border-zinc-200" />
+        <CreateRoomForm
           mentorId={id}
+          mentorName={profile.full_name ?? "Mentor"}
           mentorHourlyRate={profile.hourly_rate ?? 0}
           courses={courses}
           slots={slots}

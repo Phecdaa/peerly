@@ -4,8 +4,10 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 
 type CreateRoomBody = {
   availability_id: number;
+  course_id?: number;
   title?: string;
   description?: string;
+  mode?: "online" | "offline" | "hybrid";
   is_public?: boolean;
   payment_mode?: "split_equal" | "split_custom";
   participant_ids?: string[];
@@ -30,8 +32,10 @@ export async function POST(request: NextRequest) {
 
   const {
     availability_id,
+    course_id,
     title,
     description,
+    mode = "online",
     is_public = false,
     payment_mode = "split_equal",
     participant_ids = [],
@@ -63,38 +67,27 @@ export async function POST(request: NextRequest) {
     new Set([user.id, ...participant_ids])
   );
 
-  // Use service client to perform a transactional check + insert
   const service = getSupabaseServiceClient();
 
-  // We approximate transactional capacity check by counting existing participants
+  // One availability = one active room (not cancelled/finished)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: existingParticipants, error: existingErr } = await (service as any)
-    .from("room_participants")
-    .select("id, room_id")
-    .in(
-      "room_id",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (((await (service as any)
-        .from("rooms")
-        .select("id")
-        .eq("availability_id", availability.id)) as { data?: { id: number }[] | null })
-        ?.data ?? []
-      ).map((r) => r.id)
-    );
+  const { data: existingRoom } = (await (service as any)
+    .from("rooms")
+    .select("id")
+    .eq("availability_id", availability.id)
+    .in("status", ["pending_payment", "waiting_mentor_approval", "scheduled", "ongoing"])
+    .maybeSingle()) as { data: { id: number } | null };
 
-  if (existingErr) {
+  if (existingRoom) {
     return NextResponse.json(
-      { error: existingErr.message },
-      { status: 500 }
+      { error: "Slot ini sudah dipakai untuk room lain" },
+      { status: 409 }
     );
   }
 
-  const currentCount = existingParticipants?.length ?? 0;
-  const requestedCount = uniqueParticipantIds.length;
-
-  if (currentCount + requestedCount > availability.max_students) {
+  if (uniqueParticipantIds.length > availability.max_students) {
     return NextResponse.json(
-      { error: "Slot capacity exceeded" },
+      { error: "Jumlah peserta melebihi kapasitas slot" },
       { status: 409 }
     );
   }
@@ -107,8 +100,10 @@ export async function POST(request: NextRequest) {
       mentor_id: availability.mentor_id,
       host_id: user.id,
       availability_id: availability.id,
+      course_id: course_id ?? null,
       title: title ?? null,
       description: description ?? null,
+      mode,
       is_public,
       payment_mode,
       scheduled_start: availability.start_ts,
