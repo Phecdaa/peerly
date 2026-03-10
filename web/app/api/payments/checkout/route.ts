@@ -1,0 +1,175 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
+
+type CheckoutBody = {
+  room_id: number;
+  idempotency_key?: string;
+};
+
+export async function POST(request: NextRequest) {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: CheckoutBody;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { room_id, idempotency_key } = body;
+  if (typeof room_id !== "number") {
+    return NextResponse.json(
+      { error: "room_id is required" },
+      { status: 400 }
+    );
+  }
+
+  const service = getSupabaseServiceClient();
+
+  // Fetch room and basic pricing information (for now, use mentor hourly_rate and duration)
+  const { data: room, error: roomErr } = await service
+    .from("rooms")
+    .select(
+      `
+      id,
+      mentor_id,
+      scheduled_start,
+      scheduled_end,
+      status,
+      room_participants ( user_id )
+    `
+    )
+    .eq("id", room_id)
+    .single();
+
+  if (roomErr || !room) {
+    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+  }
+
+  if (room.status !== "pending_payment") {
+    return NextResponse.json(
+      { error: "Room is not in pending_payment state" },
+      { status: 400 }
+    );
+  }
+
+  const isParticipant = room.room_participants?.some(
+    (p: { user_id: string }) => p.user_id === user.id
+  );
+  if (!isParticipant) {
+    return NextResponse.json(
+      { error: "Only room participants can pay" },
+      { status: 403 }
+    );
+  }
+
+  const durationMinutes =
+    (new Date(room.scheduled_end).getTime() -
+      new Date(room.scheduled_start).getTime()) /
+    60000;
+
+  const { data: mentorProfile } = await service
+    .from("profiles")
+    .select("hourly_rate")
+    .eq("id", room.mentor_id)
+    .single();
+
+  const hourlyRate = Number(mentorProfile?.hourly_rate ?? 0);
+  const baseAmount = (hourlyRate * durationMinutes) / 60;
+
+  // For MVP/mock: simple equal split by number of participants
+  const participantCount = room.room_participants?.length || 1;
+  const amountPerParticipant = baseAmount / participantCount;
+
+  const effectiveIdempotencyKey =
+    idempotency_key ?? `room-${room_id}-user-${user.id}`;
+
+  // Insert payment record in escrow and mark participant as paid (mock of provider success)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: existingPayment } = (await (service as any)
+    .from("payments")
+    .select("id, status")
+    .eq("idempotency_key", effectiveIdempotencyKey)
+    .maybeSingle()) as { data: { id: number; status: string } | null };
+
+  if (existingPayment && existingPayment.status === "escrow") {
+    return NextResponse.json({
+      ok: true,
+      payment_id: existingPayment.id,
+      status: "escrow",
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: payment, error: paymentErr } = (await (service as any)
+    .from("payments")
+    .insert({
+      booking_id: null,
+      amount: amountPerParticipant,
+      platform_fee: amountPerParticipant * 0.1,
+      mentor_amount: amountPerParticipant * 0.9,
+      status: "escrow",
+      provider: "mock",
+      direction: "student_to_platform",
+      idempotency_key: effectiveIdempotencyKey,
+      metadata: { room_id, payer_id: user.id },
+    })
+    .select("id")
+    .single()) as { data: { id: number } | null; error: { message: string } | null };
+
+  if (paymentErr || !payment) {
+    return NextResponse.json(
+      { error: paymentErr?.message ?? "Failed to create payment" },
+      { status: 500 }
+    );
+  }
+
+  // Mark current user as paid in room_participants
+  const { error: updateParticipantErr } = await service
+    .from("room_participants")
+    .update({
+      has_paid: true,
+      amount_to_pay: amountPerParticipant,
+      amount_paid: amountPerParticipant,
+    })
+    .eq("room_id", room_id)
+    .eq("user_id", user.id);
+
+  if (updateParticipantErr) {
+    return NextResponse.json(
+      { error: updateParticipantErr.message },
+      { status: 500 }
+    );
+  }
+
+  // If all participants have paid, move room forward
+  const { data: participantsAfter } = await service
+    .from("room_participants")
+    .select("id, has_paid")
+    .eq("room_id", room_id);
+
+  const allPaid =
+    participantsAfter && participantsAfter.every((p) => p.has_paid === true);
+
+  if (allPaid) {
+    await service
+      .from("rooms")
+      .update({ status: "waiting_mentor_approval" })
+      .eq("id", room_id);
+  }
+
+  return NextResponse.json({
+    ok: true,
+    payment_id: payment.id,
+    status: "escrow",
+  });
+}
+
