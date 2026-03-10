@@ -17,6 +17,17 @@ on public.profiles
 for select
 using (public.is_admin(auth.uid()));
 
+-- Authenticated users can view approved mentor profiles (for browsing/booking)
+drop policy if exists "Profiles: users can view approved mentors" on public.profiles;
+create policy "Profiles: users can view approved mentors"
+on public.profiles
+for select
+using (
+  is_mentor = true
+  and mentor_status = 'approved'
+  and auth.uid() is not null
+);
+
 -- Users can update their own profile
 drop policy if exists "Profiles: users can update own" on public.profiles;
 create policy "Profiles: users can update own"
