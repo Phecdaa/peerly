@@ -204,8 +204,7 @@ alter table public.payments
 
 alter table public.payments
   add constraint payment_direction_check
-    check (direction in ('student_to_platform','platform_to_mentor'))
-  deferrable initially deferred;
+    check (direction in ('student_to_platform','platform_to_mentor'));
 
 create unique index if not exists payments_idempotency_key_idx
   on public.payments (idempotency_key)
