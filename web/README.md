@@ -4,13 +4,11 @@ Peerly adalah marketplace belajar mahasiswa untuk booking sesi belajar 1-on-1 at
 
 ### 1. Setup environment
 
-Buat file `.env.local` di folder `web/` dengan isi:
+Salin `.env.example` menjadi `.env.local` di folder `web/`, lalu isi nilai yang sesuai:
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key # server only, never exposed to client
-```
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` → dari project Supabase kamu
+- `NEXT_PUBLIC_SITE_URL` → URL app di Vercel (mis. `https://peerly-your-env.vercel.app`)
+- Jika memakai Stripe beneran: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 
 ### 2. Setup database (Supabase)
 
@@ -23,6 +21,8 @@ Di Supabase SQL Editor, jalankan file SQL berikut (lihat folder `supabase/sql/`)
 
 Pastikan RLS aktif untuk tabel-tabel yang didefinisikan.
 
+> Penting: jika kamu sudah pernah menjalankan SQL lama, cukup jalankan ulang `tables.sql` dan `policies.sql` untuk menambahkan tabel/kolom baru (Postgres akan mengabaikan yang sudah ada berkat `if not exists`).
+
 ### 3. Jalankan dev server
 
 ```bash
@@ -32,11 +32,12 @@ npm run dev
 
 Lalu buka `http://localhost:3000`.
 
-Flow MVP yang ditargetkan:
+Flow MVP yang ditargetkan (peer learning version):
 
 - Register/login via Supabase Auth
 - Apply sebagai mentor, approval admin
-- Mentor set availability
-- Learner booking sesi, konfirmasi pembayaran dummy
-- Meeting link tersimpan di booking
-- Rating & review setelah sesi selesai
+- Mentor set availability (calendar slots dengan kapasitas)
+- Learner buat room & booking slot (1-on-1 atau kelompok kecil)
+- Pembayaran masuk ke wallet platform (escrow)
+- Mentor mark sesi selesai → payout ke mentor
+- Rating, feedback, dan report setelah sesi selesai

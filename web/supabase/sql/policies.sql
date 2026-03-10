@@ -167,7 +167,6 @@ alter table public.payments enable row level security;
 -- Do not expose direct Supabase client access from frontend.
 
 
--- REVIEWS
 alter table public.reviews enable row level security;
 
 -- Public can read reviews
@@ -196,4 +195,165 @@ on public.reviews
 for all
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
+
+
+-- ROOMS
+alter table public.rooms enable row level security;
+
+-- Participants, mentor, and admins can read room details
+create policy "Rooms: participants and mentor read"
+on public.rooms
+for select
+using (
+  public.is_admin(auth.uid())
+  or mentor_id = auth.uid()
+  or exists (
+    select 1
+    from public.room_participants rp
+    where rp.room_id = id
+      and rp.user_id = auth.uid()
+  )
+);
+
+-- ROOM_PARTICIPANTS
+alter table public.room_participants enable row level security;
+
+-- Participants themselves, mentor, and admins can read participants list
+create policy "RoomParticipants: participants and mentor read"
+on public.room_participants
+for select
+using (
+  public.is_admin(auth.uid())
+  or user_id = auth.uid()
+  or exists (
+    select 1
+    from public.rooms r
+    where r.id = room_id
+      and r.mentor_id = auth.uid()
+  )
+);
+
+
+-- ROOM_MESSAGES (temporal chat)
+alter table public.room_messages enable row level security;
+
+-- Participants & mentor & admins can read messages
+create policy "RoomMessages: participants and mentor read"
+on public.room_messages
+for select
+using (
+  public.is_admin(auth.uid())
+  or exists (
+    select 1
+    from public.room_participants rp
+    where rp.room_id = room_id
+      and rp.user_id = auth.uid()
+  )
+  or exists (
+    select 1
+    from public.rooms r
+    where r.id = room_id
+      and r.mentor_id = auth.uid()
+  )
+);
+
+-- Participants & mentor can insert messages while they are part of the room
+create policy "RoomMessages: participants insert"
+on public.room_messages
+for insert
+with check (
+  exists (
+    select 1
+    from public.room_participants rp
+    where rp.room_id = room_id
+      and rp.user_id = auth.uid()
+  )
+  or exists (
+    select 1
+    from public.rooms r
+    where r.id = room_id
+      and r.mentor_id = auth.uid()
+  )
+);
+
+
+-- SESSION_NOTES
+alter table public.session_notes enable row level security;
+
+-- Participants and mentor can read notes
+create policy "SessionNotes: participants and mentor read"
+on public.session_notes
+for select
+using (
+  public.is_admin(auth.uid())
+  or exists (
+    select 1
+    from public.room_participants rp
+    where rp.room_id = room_id
+      and rp.user_id = auth.uid()
+  )
+  or mentor_id = auth.uid()
+);
+
+-- Mentor can insert/update their own notes
+create policy "SessionNotes: mentor manage own"
+on public.session_notes
+for all
+using (mentor_id = auth.uid() or public.is_admin(auth.uid()))
+with check (mentor_id = auth.uid() or public.is_admin(auth.uid()));
+
+
+-- REPORTS
+alter table public.reports enable row level security;
+
+-- Reporter can see their own reports, admins can see all
+create policy "Reports: reporter read own"
+on public.reports
+for select
+using (reporter_id = auth.uid());
+
+create policy "Reports: admin read all"
+on public.reports
+for select
+using (public.is_admin(auth.uid()));
+
+-- Any authenticated user can create reports for themselves
+create policy "Reports: users insert"
+on public.reports
+for insert
+with check (reporter_id = auth.uid());
+
+-- Admins can manage all reports
+create policy "Reports: admin manage all"
+on public.reports
+for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+
+-- ADMIN_LOGS
+alter table public.admin_logs enable row level security;
+
+-- Only admins can read/write admin logs (or service_role bypasses RLS)
+create policy "AdminLogs: admins manage all"
+on public.admin_logs
+for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+
+-- WALLET_ENTRIES
+alter table public.wallet_entries enable row level security;
+
+-- Mentors can read their own wallet entries; admins can read all
+create policy "WalletEntries: mentor read own"
+on public.wallet_entries
+for select
+using (mentor_id = auth.uid());
+
+create policy "WalletEntries: admin read all"
+on public.wallet_entries
+for select
+using (public.is_admin(auth.uid()));
+
 
