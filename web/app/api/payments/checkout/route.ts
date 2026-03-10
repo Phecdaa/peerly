@@ -7,6 +7,19 @@ type CheckoutBody = {
   idempotency_key?: string;
 };
 
+type RoomWithParticipants = {
+  id: number;
+  mentor_id: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  status: string;
+  room_participants?: { user_id: string }[];
+};
+
+type MentorProfile = {
+  hourly_rate: number | null;
+};
+
 export async function POST(request: NextRequest) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -35,7 +48,7 @@ export async function POST(request: NextRequest) {
   const service = getSupabaseServiceClient();
 
   // Fetch room and basic pricing information (for now, use mentor hourly_rate and duration)
-  const { data: room, error: roomErr } = await service
+  const { data: roomRaw, error: roomErr } = await service
     .from("rooms")
     .select(
       `
@@ -49,6 +62,8 @@ export async function POST(request: NextRequest) {
     )
     .eq("id", room_id)
     .single();
+
+  const room = roomRaw as RoomWithParticipants | null;
 
   if (roomErr || !room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -80,9 +95,9 @@ export async function POST(request: NextRequest) {
     .from("profiles")
     .select("hourly_rate")
     .eq("id", room.mentor_id)
-    .single();
+    .single<MentorProfile>();
 
-  const hourlyRate = Number(mentorProfile?.hourly_rate ?? 0);
+  const hourlyRate = Number((mentorProfile as MentorProfile | null)?.hourly_rate ?? 0);
   const baseAmount = (hourlyRate * durationMinutes) / 60;
 
   // For MVP/mock: simple equal split by number of participants
@@ -133,7 +148,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Mark current user as paid in room_participants
-  const { error: updateParticipantErr } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateParticipantErr } = await (service as any)
     .from("room_participants")
     .update({
       has_paid: true,
@@ -151,16 +167,19 @@ export async function POST(request: NextRequest) {
   }
 
   // If all participants have paid, move room forward
-  const { data: participantsAfter } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: participantsAfter } = await (service as any)
     .from("room_participants")
     .select("id, has_paid")
     .eq("room_id", room_id);
 
   const allPaid =
-    participantsAfter && participantsAfter.every((p) => p.has_paid === true);
+    participantsAfter &&
+    participantsAfter.every((p: { has_paid: boolean }) => p.has_paid === true);
 
   if (allPaid) {
-    await service
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (service as any)
       .from("rooms")
       .update({ status: "waiting_mentor_approval" })
       .eq("id", room_id);

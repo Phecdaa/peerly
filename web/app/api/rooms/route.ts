@@ -67,15 +67,19 @@ export async function POST(request: NextRequest) {
   const service = getSupabaseServiceClient();
 
   // We approximate transactional capacity check by counting existing participants
-  const { data: existingParticipants, error: existingErr } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: existingParticipants, error: existingErr } = await (service as any)
     .from("room_participants")
     .select("id, room_id")
     .in(
       "room_id",
-      (await service
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (((await (service as any)
         .from("rooms")
         .select("id")
-        .eq("availability_id", availability.id))?.data?.map((r) => r.id) ?? []
+        .eq("availability_id", availability.id)) as { data?: { id: number }[] | null })
+        ?.data ?? []
+      ).map((r) => r.id)
     );
 
   if (existingErr) {
@@ -96,7 +100,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Create room + participants
-  const { data: room, error: roomErr } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: room, error: roomErr } = await (service as any)
     .from("rooms")
     .insert({
       mentor_id: availability.mentor_id,
@@ -117,7 +122,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: roomErr?.message }, { status: 500 });
   }
 
-  const { error: participantsErr } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: participantsErr } = await (service as any)
     .from("room_participants")
     .insert(
       uniqueParticipantIds.map((uid) => ({
