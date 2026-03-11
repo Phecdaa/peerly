@@ -32,10 +32,17 @@ export function CreateRoomForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState<"online" | "offline" | "hybrid">("online");
+  const [intendedCount, setIntendedCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const availableSlots = slots.filter((s) => !s.is_booked && !s.has_room);
+
+  // When slot changes, clamp intended count to slot capacity
+  const maxForSlot = slot ? slot.max_students : 1;
+  const effectiveIntended = slot
+    ? Math.min(Math.max(1, intendedCount), maxForSlot)
+    : 1;
 
   function formatSlot(s: Slot) {
     const start = new Date(s.start_ts);
@@ -55,7 +62,7 @@ export function CreateRoomForm({
     : 0;
   const totalPrice = (durationMinutes / 60) * mentorHourlyRate;
   const perPerson =
-    slot && slot.max_students > 0 ? totalPrice / slot.max_students : totalPrice;
+    effectiveIntended > 0 ? totalPrice / effectiveIntended : totalPrice;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -77,6 +84,7 @@ export function CreateRoomForm({
           description: description.trim() || null,
           mode,
           is_public: false,
+          intended_participant_count: effectiveIntended,
         }),
       });
 
@@ -165,6 +173,28 @@ export function CreateRoomForm({
         <>
           <div>
             <label className="mb-1 block text-sm font-medium text-zinc-700">
+              Jumlah peserta yang diinginkan
+            </label>
+            <select
+              value={effectiveIntended}
+              onChange={(e) =>
+                setIntendedCount(parseInt(e.target.value, 10))
+              }
+              className="select"
+            >
+              {Array.from({ length: maxForSlot }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {n} {n === 1 ? "orang (private)" : "orang"}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-zinc-500">
+              Maks. untuk slot ini: {maxForSlot} orang
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-zinc-700">
               Judul (opsional)
             </label>
             <input
@@ -209,12 +239,14 @@ export function CreateRoomForm({
           <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="badge">Durasi: {durationMinutes} menit</span>
-              <span className="badge">Kapasitas: {slot.max_students} orang</span>
+              <span className="badge">
+                Peserta: {effectiveIntended} orang (max {maxForSlot})
+              </span>
               <span className="badge border-indigo-200 bg-indigo-50 text-indigo-800">
                 Total: Rp {totalPrice.toLocaleString()}
               </span>
               <span className="badge">
-                Per orang (~): Rp {Math.round(perPerson).toLocaleString()}
+                Per orang: Rp {Math.round(perPerson).toLocaleString()}
               </span>
             </div>
           </div>

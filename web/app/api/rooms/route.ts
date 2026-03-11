@@ -11,6 +11,7 @@ type CreateRoomBody = {
   is_public?: boolean;
   payment_mode?: "split_equal" | "split_custom";
   participant_ids?: string[];
+  intended_participant_count?: number;
 };
 
 export async function POST(request: NextRequest) {
@@ -39,7 +40,13 @@ export async function POST(request: NextRequest) {
     is_public = false,
     payment_mode = "split_equal",
     participant_ids = [],
+    intended_participant_count: rawIntended = 1,
   } = body;
+
+  const intended_participant_count =
+    typeof rawIntended === "number" && rawIntended >= 1
+      ? Math.min(rawIntended, 100)
+      : 1;
 
   if (typeof availability_id !== "number") {
     return NextResponse.json(
@@ -85,6 +92,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (intended_participant_count > availability.max_students) {
+    return NextResponse.json(
+      {
+        error: `Jumlah peserta yang diinginkan tidak boleh melebihi kapasitas slot (max ${availability.max_students})`,
+      },
+      { status: 400 }
+    );
+  }
+
+  if (uniqueParticipantIds.length > intended_participant_count) {
+    return NextResponse.json(
+      { error: "Jumlah peserta saat ini melebihi jumlah yang diinginkan" },
+      { status: 409 }
+    );
+  }
+
   if (uniqueParticipantIds.length > availability.max_students) {
     return NextResponse.json(
       { error: "Jumlah peserta melebihi kapasitas slot" },
@@ -109,6 +132,7 @@ export async function POST(request: NextRequest) {
       scheduled_start: availability.start_ts,
       scheduled_end: availability.end_ts,
       status: "pending_payment",
+      intended_participant_count,
     })
     .select("id")
     .single();
@@ -135,6 +159,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ id: room.id, status: "pending_payment" });
+  return NextResponse.json({
+    id: Number(room.id),
+    status: "pending_payment",
+  });
 }
 

@@ -5,6 +5,8 @@ import { RoomChat } from "./RoomChat";
 import { RoomActions } from "./RoomActions";
 import { InviteByEmailForm } from "./InviteByEmailForm";
 
+export const dynamic = "force-dynamic";
+
 type RoomPageProps = {
   params: Promise<{ id: string }>;
 };
@@ -49,6 +51,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       scheduled_start,
       scheduled_end,
       status,
+      intended_participant_count,
       room_participants (
         id,
         user_id,
@@ -106,6 +109,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
   });
 
   const participantCount = room.room_participants?.length ?? 0;
+  const intendedCount = Math.max(1, Number(room.intended_participant_count) ?? participantCount);
   const paidCount = (room.room_participants ?? []).filter(
     (p: { has_paid: boolean }) => p.has_paid
   ).length;
@@ -121,7 +125,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
   const hourlyRate = Number(mentorProfile?.hourly_rate ?? 0);
   const totalAmount = (hourlyRate * durationMin) / 60;
   const amountPerPerson =
-    participantCount > 0 ? totalAmount / participantCount : totalAmount;
+    intendedCount > 0 ? totalAmount / intendedCount : totalAmount;
 
   const now = new Date();
   const sessionEnd = new Date(room.scheduled_end);
@@ -208,7 +212,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             <InviteByEmailForm
               roomId={roomId}
               currentCount={participantCount}
-              maxCapacity={maxCapacity}
+              maxCapacity={Math.min(maxCapacity, intendedCount)}
               canInvite={isHost || isMentor}
             />
           </section>

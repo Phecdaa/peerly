@@ -13,6 +13,7 @@ type RoomWithParticipants = {
   scheduled_start: string;
   scheduled_end: string;
   status: string;
+  intended_participant_count?: number;
   room_participants?: { user_id: string }[];
 };
 
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       scheduled_start,
       scheduled_end,
       status,
+      intended_participant_count,
       room_participants ( user_id )
     `
     )
@@ -100,9 +102,14 @@ export async function POST(request: NextRequest) {
   const hourlyRate = Number((mentorProfile as MentorProfile | null)?.hourly_rate ?? 0);
   const baseAmount = (hourlyRate * durationMinutes) / 60;
 
-  // For MVP/mock: simple equal split by number of participants
-  const participantCount = room.room_participants?.length || 1;
-  const amountPerParticipant = baseAmount / participantCount;
+  // Split by intended participant count so each person pays a fixed share (no double payment per user)
+  const intendedCount = Math.max(
+    1,
+    Number((room as RoomWithParticipants).intended_participant_count) ||
+      room.room_participants?.length ||
+      1
+  );
+  const amountPerParticipant = baseAmount / intendedCount;
 
   const effectiveIdempotencyKey =
     idempotency_key ?? `room-${room_id}-user-${user.id}`;

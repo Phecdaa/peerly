@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { BookingForm } from "./BookingForm";
 import { CreateRoomForm } from "./CreateRoomForm";
 
 type Params = { params: Promise<{ id: string }> };
@@ -47,19 +46,9 @@ export default async function MentorDetailPage({ params }: Params) {
     .in("status", ["pending_payment", "waiting_mentor_approval", "scheduled", "ongoing"]);
   const availWithRoom = new Set((activeRooms ?? []).map((r) => r.availability_id));
 
-  const { data: bookingRanges } = await supabase
-    .from("bookings")
-    .select("start_ts, end_ts")
-    .eq("mentor_id", id)
-    .in("status", ["pending", "accepted", "paid"]);
-
-  const bookedSet = new Set(
-    (bookingRanges ?? []).map((b) => `${b.start_ts}/${b.end_ts}`)
-  );
-
   const slots = (availabilities ?? []).map((a) => ({
     ...a,
-    is_booked: bookedSet.has(`${a.start_ts}/${a.end_ts}`),
+    is_booked: false,
     has_room: availWithRoom.has(a.id),
   }));
 
@@ -119,23 +108,16 @@ export default async function MentorDetailPage({ params }: Params) {
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 space-y-6">
         <div>
           <h2 className="mb-4 text-sm font-semibold text-zinc-900">
-            Pilih slot & request booking 1-on-1
+            Pilih slot & buat sesi (room)
           </h2>
-          <BookingForm
+          <CreateRoomForm
             mentorId={id}
+            mentorName={profile.full_name ?? "Mentor"}
             mentorHourlyRate={profile.hourly_rate ?? 0}
             courses={courses}
-            slots={slots.filter((s) => !s.has_room)}
+            slots={slots}
           />
         </div>
-        <hr className="border-zinc-200" />
-        <CreateRoomForm
-          mentorId={id}
-          mentorName={profile.full_name ?? "Mentor"}
-          mentorHourlyRate={profile.hourly_rate ?? 0}
-          courses={courses}
-          slots={slots}
-        />
       </div>
     </div>
   );

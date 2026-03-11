@@ -116,7 +116,14 @@ alter table public.bookings
   add column if not exists room_id int references public.rooms (id) on delete set null;
 
 alter table public.rooms
-  add column if not exists course_id int references public.courses (id) on delete set null;
+  add column if not exists course_id int references public.courses (id) on delete set null,
+  add column if not exists intended_participant_count int not null default 1;
+
+alter table public.rooms
+  drop constraint if exists rooms_intended_count_check;
+alter table public.rooms
+  add constraint rooms_intended_count_check
+    check (intended_participant_count >= 1 and intended_participant_count <= 100);
 
 -- ROOM PARTICIPANTS: host + invited learners with payment info
 create table if not exists public.room_participants (

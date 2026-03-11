@@ -20,6 +20,29 @@ export async function GET(
     return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
   }
 
+  // Explicit access check: only participants and mentor can read messages (RLS may hide rows)
+  const { data: room } = await supabase
+    .from("rooms")
+    .select("id, mentor_id")
+    .eq("id", roomId)
+    .single();
+
+  if (!room) {
+    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+  }
+
+  const isMentor = room.mentor_id === user.id;
+  const { data: participant } = await supabase
+    .from("room_participants")
+    .select("id")
+    .eq("room_id", roomId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!isMentor && !participant) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 100);
 

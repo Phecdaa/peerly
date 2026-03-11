@@ -23,6 +23,7 @@ export function RoomChat({
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -35,6 +36,11 @@ export function RoomChat({
     if (res.ok) {
       const data = await res.json();
       setMessages(Array.isArray(data) ? data : []);
+      setChatError(null);
+    } else if (res.status === 403) {
+      setChatError("Anda tidak punya akses ke chat room ini.");
+    } else if (res.status === 404) {
+      setChatError("Room tidak ditemukan.");
     }
   }
 
@@ -72,7 +78,9 @@ export function RoomChat({
   return (
     <div className="flex flex-col rounded-xl border border-zinc-200 bg-white">
       <div className="max-h-64 overflow-y-auto p-3 space-y-2">
-        {messages.length === 0 ? (
+        {chatError ? (
+          <p className="text-sm text-amber-700">{chatError}</p>
+        ) : messages.length === 0 ? (
           <p className="text-sm text-zinc-500">Belum ada pesan.</p>
         ) : (
           messages.map((m) => (
