@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { RoomChat } from "./RoomChat";
 import { RoomActions } from "./RoomActions";
+import { InviteByEmailForm } from "./InviteByEmailForm";
 
 type RoomPageProps = {
   params: Promise<{ id: string }>;
@@ -40,6 +41,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       id,
       mentor_id,
       host_id,
+      availability_id,
       title,
       description,
       payment_mode,
@@ -68,6 +70,14 @@ export default async function RoomPage({ params }: RoomPageProps) {
     .select("hourly_rate")
     .eq("id", room.mentor_id)
     .single();
+
+  const { data: availability } = await supabase
+    .from("availabilities")
+    .select("max_students")
+    .eq("id", room.availability_id)
+    .single();
+
+  const maxCapacity = availability?.max_students ?? 1;
 
   const isHost = room.host_id === user.id;
   const isMentor = room.mentor_id === user.id;
@@ -190,6 +200,16 @@ export default async function RoomPage({ params }: RoomPageProps) {
               hasPaid={hasPaid}
               amountPerPerson={amountPerPerson}
               isSessionEnded={isSessionEnded}
+            />
+          </section>
+
+          <section className="card space-y-3">
+            <h2 className="card-title">Undang peserta</h2>
+            <InviteByEmailForm
+              roomId={roomId}
+              currentCount={participantCount}
+              maxCapacity={maxCapacity}
+              canInvite={isHost || isMentor}
             />
           </section>
 

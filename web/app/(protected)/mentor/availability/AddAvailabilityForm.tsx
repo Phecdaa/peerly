@@ -8,6 +8,7 @@ export function AddAvailabilityForm() {
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
+  const [maxStudents, setMaxStudents] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +30,11 @@ export function AddAvailabilityForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slots: [{ start_ts: start.toISOString(), end_ts: end.toISOString() }],
+          slots: [{
+            start_ts: start.toISOString(),
+            end_ts: end.toISOString(),
+            max_students: Math.max(1, Math.min(50, maxStudents)),
+          }],
         }),
       });
 
@@ -56,7 +61,7 @@ export function AddAvailabilityForm() {
   return (
     <form onSubmit={handleSubmit} className="card space-y-4">
       <h2 className="card-title">Tambah slot</h2>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
         <div>
           <label className="mb-1 block text-xs font-medium text-zinc-600">
             Tanggal
@@ -89,6 +94,19 @@ export function AddAvailabilityForm() {
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
+            className="input"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-zinc-600">
+            Maks. peserta (1 room)
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={50}
+            value={maxStudents}
+            onChange={(e) => setMaxStudents(parseInt(e.target.value, 10) || 1)}
             className="input"
           />
         </div>

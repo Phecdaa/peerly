@@ -28,10 +28,13 @@ export function RoomChat({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   async function fetchMessages() {
-    const res = await fetch(`/api/rooms/${roomId}/messages`);
+    const res = await fetch(`/api/rooms/${roomId}/messages`, {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
     if (res.ok) {
       const data = await res.json();
-      setMessages(data);
+      setMessages(Array.isArray(data) ? data : []);
     }
   }
 
@@ -53,12 +56,13 @@ export function RoomChat({
       const res = await fetch(`/api/rooms/${roomId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ content: content.trim() }),
       });
       if (res.ok) {
         setContent("");
-        router.refresh();
         fetchMessages();
+        router.refresh();
       }
     } finally {
       setLoading(false);

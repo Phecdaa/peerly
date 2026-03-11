@@ -62,15 +62,20 @@ export default async function MentorAvailabilityPage() {
         ) : (
           <ul className="space-y-2 text-sm text-zinc-700">
             {availabilities.map((a) => (
-              <li key={a.id}>
-                {new Date(a.start_ts).toLocaleString("id-ID", {
-                  dateStyle: "short",
-                  timeStyle: "short",
-                })}{" "}
-                –{" "}
-                {new Date(a.end_ts).toLocaleTimeString("id-ID", {
-                  timeStyle: "short",
-                })}
+              <li key={a.id} className="flex items-center justify-between gap-2">
+                <span>
+                  {new Date(a.start_ts).toLocaleString("id-ID", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}{" "}
+                  –{" "}
+                  {new Date(a.end_ts).toLocaleTimeString("id-ID", {
+                    timeStyle: "short",
+                  })}
+                </span>
+                <span className="text-xs text-zinc-500">
+                  Maks. {a.max_students ?? 1} peserta
+                </span>
               </li>
             ))}
           </ul>

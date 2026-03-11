@@ -87,8 +87,13 @@ export function CreateRoomForm({
         return;
       }
 
-      router.push(`/rooms/${data.id}`);
+      const roomId = data.id;
+      if (roomId == null || roomId === undefined) {
+        setError("Room dibuat tapi ID tidak diterima.");
+        return;
+      }
       router.refresh();
+      window.location.href = `/rooms/${roomId}`;
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
     } finally {
