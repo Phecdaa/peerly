@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     .from("rooms")
     .select("id")
     .eq("availability_id", availability.id)
-    .in("status", ["pending_payment", "waiting_mentor_approval", "scheduled", "ongoing"])
+    .in("status", ["pending_mentor_accept", "waiting_payment", "scheduled", "ongoing"])
     .maybeSingle()) as { data: { id: number } | null };
 
   if (existingRoom) {
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       payment_mode,
       scheduled_start: availability.start_ts,
       scheduled_end: availability.end_ts,
-      status: "pending_payment",
+      status: "pending_mentor_accept",
       intended_participant_count,
     })
     .select("id")
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     id: Number(room.id),
-    status: "pending_payment",
+    status: "pending_mentor_accept",
   });
 }
 

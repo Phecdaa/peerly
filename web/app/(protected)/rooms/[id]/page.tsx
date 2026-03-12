@@ -12,8 +12,8 @@ type RoomPageProps = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  pending_payment: "Menunggu pembayaran",
-  waiting_mentor_approval: "Menunggu approval mentor",
+  pending_mentor_accept: "Menunggu mentor menerima",
+  waiting_payment: "Menunggu pembayaran",
   scheduled: "Terjadwal",
   ongoing: "Berlangsung",
   finished: "Selesai",
@@ -131,7 +131,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
   const sessionEnd = new Date(room.scheduled_end);
   const isSessionEnded = now > sessionEnd;
   const isReadOnly =
-    ["finished", "cancelled"].includes(room.status) || isSessionEnded;
+    !["scheduled", "ongoing"].includes(room.status) || isSessionEnded;
 
   const role = isMentor ? "mentor" : isHost ? "host" : "participant";
 

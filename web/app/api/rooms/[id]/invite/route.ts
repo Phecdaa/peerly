@@ -61,7 +61,8 @@ export async function POST(
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  if (!["pending_payment", "waiting_mentor_approval"].includes(room.status)) {
+  // Freeze participants after mentor accepts (waiting_payment) to keep split deterministic
+  if (room.status !== "pending_mentor_accept") {
     return NextResponse.json(
       { error: "Room tidak bisa di-invite lagi" },
       { status: 400 }
@@ -90,7 +91,16 @@ export async function POST(
     .eq("room_id", roomId);
 
   const currentCount = participants?.length ?? 0;
-  if (currentCount >= maxStudents) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: roomCap } = await (service as any)
+    .from("rooms")
+    .select("intended_participant_count")
+    .eq("id", roomId)
+    .single();
+  const intendedCap = Number(roomCap?.intended_participant_count ?? 1);
+
+  const effectiveCap = Math.min(maxStudents, intendedCap);
+  if (currentCount >= effectiveCap) {
     return NextResponse.json(
       { error: "Kapasitas room sudah penuh" },
       { status: 409 }

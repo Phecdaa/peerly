@@ -71,9 +71,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  if (room.status !== "pending_payment") {
+  if (room.status !== "waiting_payment") {
     return NextResponse.json(
-      { error: "Room is not in pending_payment state" },
+      { error: "Room is not in waiting_payment state" },
       { status: 400 }
     );
   }
@@ -174,22 +174,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // If all participants have paid, move room forward
+  // If all intended participants have paid, mark room scheduled
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: participantsAfter } = await (service as any)
     .from("room_participants")
     .select("id, has_paid")
     .eq("room_id", room_id);
 
-  const allPaid =
-    participantsAfter &&
-    participantsAfter.every((p: { has_paid: boolean }) => p.has_paid === true);
+  const paidCount =
+    (participantsAfter ?? []).filter((p: { has_paid: boolean }) => p.has_paid === true)
+      .length ?? 0;
+  const allPaid = paidCount === intendedCount;
 
   if (allPaid) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (service as any)
       .from("rooms")
-      .update({ status: "waiting_mentor_approval" })
+      .update({ status: "scheduled" })
       .eq("id", room_id);
   }
 

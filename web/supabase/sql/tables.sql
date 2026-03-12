@@ -90,14 +90,14 @@ create table if not exists public.rooms (
   payment_mode text not null default 'split_equal',
   scheduled_start timestamptz not null,
   scheduled_end timestamptz not null,
-  status text not null default 'pending_payment',
+  status text not null default 'pending_mentor_accept',
   cancel_reason text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint room_status_check
     check (status in (
-      'pending_payment',
-      'waiting_mentor_approval',
+      'pending_mentor_accept',
+      'waiting_payment',
       'scheduled',
       'ongoing',
       'finished',

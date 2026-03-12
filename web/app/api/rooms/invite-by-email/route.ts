@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!["pending_payment", "waiting_mentor_approval"].includes(room.status)) {
+  // Freeze participants after mentor accepts (waiting_payment) to keep split deterministic
+  if (room.status !== "pending_mentor_accept") {
     return NextResponse.json(
       { error: "Room tidak bisa di-invite lagi" },
       { status: 400 }
@@ -77,7 +78,16 @@ export async function POST(request: NextRequest) {
     .select("id")
     .eq("room_id", room_id);
 
-  if ((participants?.length ?? 0) >= maxStudents) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: roomCap } = await (service as any)
+    .from("rooms")
+    .select("intended_participant_count")
+    .eq("id", room_id)
+    .single();
+  const intendedCap = Number(roomCap?.intended_participant_count ?? 1);
+
+  const effectiveCap = Math.min(maxStudents, intendedCap);
+  if ((participants?.length ?? 0) >= effectiveCap) {
     return NextResponse.json(
       { error: "Kapasitas room sudah penuh" },
       { status: 409 }

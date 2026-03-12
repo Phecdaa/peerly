@@ -51,7 +51,7 @@ export async function POST(
     return NextResponse.json({ error: "Only mentor can reject" }, { status: 403 });
   }
 
-  if (!["pending_payment", "waiting_mentor_approval"].includes(room.status)) {
+  if (!["pending_mentor_accept", "waiting_payment"].includes(room.status)) {
     return NextResponse.json(
       { error: "Room tidak bisa ditolak" },
       { status: 400 }

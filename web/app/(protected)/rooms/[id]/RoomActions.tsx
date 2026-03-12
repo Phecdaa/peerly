@@ -79,7 +79,7 @@ export function RoomActions({
   return (
     <div className="space-y-3">
       {role !== "mentor" &&
-        status === "pending_payment" &&
+        status === "waiting_payment" &&
         !hasPaid &&
         !isSessionEnded && (
           <div>
@@ -95,7 +95,7 @@ export function RoomActions({
         )}
 
       {role === "mentor" &&
-        status === "waiting_mentor_approval" &&
+        status === "pending_mentor_accept" &&
         !isSessionEnded && (
           <div className="space-y-2">
             <button
@@ -104,7 +104,7 @@ export function RoomActions({
               disabled={!!loading}
               className="btn btn-success w-full"
             >
-              {loading === "accept" ? "Memproses..." : "Terima room"}
+              {loading === "accept" ? "Memproses..." : "Terima room (mulai pembayaran)"}
             </button>
             <div className="flex gap-2">
               <input

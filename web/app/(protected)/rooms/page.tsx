@@ -47,8 +47,8 @@ export default async function RoomsPage() {
     });
 
   const statusLabel: Record<string, string> = {
-    pending_payment: "Menunggu pembayaran",
-    waiting_mentor_approval: "Menunggu approval mentor",
+    pending_mentor_accept: "Menunggu mentor menerima",
+    waiting_payment: "Menunggu pembayaran",
     scheduled: "Terjadwal",
     ongoing: "Berlangsung",
     finished: "Selesai",

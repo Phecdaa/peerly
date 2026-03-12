@@ -23,7 +23,7 @@ export async function GET(
   // Explicit access check: only participants and mentor can read messages (RLS may hide rows)
   const { data: room } = await supabase
     .from("rooms")
-    .select("id, mentor_id")
+    .select("id, mentor_id, scheduled_start, scheduled_end, status")
     .eq("id", roomId)
     .single();
 
@@ -41,6 +41,21 @@ export async function GET(
 
   if (!isMentor && !participant) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Chat only active during session window for accepted rooms
+  if (!["scheduled", "ongoing"].includes(room.status)) {
+    return NextResponse.json(
+      { error: "Chat belum aktif" },
+      { status: 400 }
+    );
+  }
+  const now = new Date();
+  if (now < new Date(room.scheduled_start) || now > new Date(room.scheduled_end)) {
+    return NextResponse.json(
+      { error: "Chat hanya aktif saat sesi berlangsung" },
+      { status: 400 }
+    );
   }
 
   const { searchParams } = new URL(request.url);
@@ -96,7 +111,7 @@ export async function POST(
 
   const { data: room } = await supabase
     .from("rooms")
-    .select("id, mentor_id, scheduled_end, status")
+    .select("id, mentor_id, scheduled_start, scheduled_end, status")
     .eq("id", roomId)
     .single();
 
@@ -119,18 +134,20 @@ export async function POST(
     );
   }
 
-  if (["finished", "cancelled"].includes(room.status)) {
+  // Chat only active during session window for accepted rooms
+  if (!["scheduled", "ongoing"].includes(room.status)) {
     return NextResponse.json(
-      { error: "Chat sudah read-only (sesi selesai/dibatalkan)" },
+      { error: "Chat belum aktif" },
       { status: 400 }
     );
   }
 
   const now = new Date();
+  const sessionStart = new Date(room.scheduled_start);
   const sessionEnd = new Date(room.scheduled_end);
-  if (now > sessionEnd) {
+  if (now < sessionStart || now > sessionEnd) {
     return NextResponse.json(
-      { error: "Chat sudah read-only (waktu sesi sudah lewat)" },
+      { error: "Chat hanya aktif saat sesi berlangsung" },
       { status: 400 }
     );
   }
