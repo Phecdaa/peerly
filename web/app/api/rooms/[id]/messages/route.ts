@@ -23,7 +23,7 @@ export async function GET(
   // Explicit access check: only participants and mentor can read messages (RLS may hide rows)
   const { data: room } = await supabase
     .from("rooms")
-    .select("id, mentor_id, scheduled_start, scheduled_end, status")
+    .select("id, mentor_id, host_id, scheduled_start, scheduled_end, status")
     .eq("id", roomId)
     .single();
 
@@ -32,6 +32,7 @@ export async function GET(
   }
 
   const isMentor = room.mentor_id === user.id;
+  const isHost = room.host_id === user.id;
   const { data: participant } = await supabase
     .from("room_participants")
     .select("id")
@@ -39,7 +40,7 @@ export async function GET(
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!isMentor && !participant) {
+  if (!isMentor && !isHost && !participant) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -111,7 +112,7 @@ export async function POST(
 
   const { data: room } = await supabase
     .from("rooms")
-    .select("id, mentor_id, scheduled_start, scheduled_end, status")
+    .select("id, mentor_id, host_id, scheduled_start, scheduled_end, status")
     .eq("id", roomId)
     .single();
 
@@ -120,6 +121,7 @@ export async function POST(
   }
 
   const isMentor = room.mentor_id === user.id;
+  const isHost = room.host_id === user.id;
   const { data: participant } = await supabase
     .from("room_participants")
     .select("id")
@@ -127,7 +129,7 @@ export async function POST(
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!isMentor && !participant) {
+  if (!isMentor && !isHost && !participant) {
     return NextResponse.json(
       { error: "Only participants and mentor can post" },
       { status: 403 }

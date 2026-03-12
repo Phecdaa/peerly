@@ -240,6 +240,7 @@ on public.rooms
 for select
 using (
   public.is_admin(auth.uid())
+  or host_id = auth.uid()
   or mentor_id = auth.uid()
   or exists (
     select 1
@@ -265,6 +266,12 @@ using (
     from public.rooms r
     where r.id = room_id
       and r.mentor_id = auth.uid()
+  )
+  or exists (
+    select 1
+    from public.rooms r
+    where r.id = room_id
+      and r.host_id = auth.uid()
   )
 );
 
