@@ -94,3 +94,48 @@ Booking.status (if used):
 * [ ] No 404 after creating room.
 * [ ] Room created must be visible immediately.
 * [ ] No race condition on slot capacity.
+
+---
+
+# 12 — Konsep Pembayaran Peerly (FINAL)
+
+## 1. Prinsip dasar (non-negotiable)
+Pembayaran di Peerly **bersifat room-centric dan escrow-based**, dengan prinsip berikut:
+1. **Pembayaran dilakukan per orang**, bukan per room.
+2. Semua pembayaran **masuk ke escrow Peerly terlebih dahulu**, bukan langsung ke mentor.
+3. **Mentor baru menerima dana setelah sesi selesai** (room.status = `finished`).
+4. **Room dianggap valid / bisa berjalan hanya jika semua peserta telah membayar**.
+5. Sistem **harus idempotent** (tidak boleh ada double charge).
+
+## 4. Alur pembayaran end-to-end (happy path)
+### Fase 1 — Penentuan biaya
+- Sistem menentukan pembagian biaya berdasarkan `rooms.payment_mode`.
+- Untuk setiap peserta, sistem mengisi `room_participants.amount_to_pay`.
+
+### Fase 2 — Pembayaran individual (escrow)
+- Backend membuat payment intent dengan `status = 'escrow'`, `direction = 'student_to_platform'`, dan `idempotency_key = <room_id + user_id>`.
+- Provider mengonfirmasi pembayaran -> Backend menandai `room_participants.has_paid = true` dan mengisi `amount_paid`.
+- Setelah semua participants `has_paid = true` -> `rooms.status` berubah jadi `scheduled`.
+
+### Fase 3 — Escrow holding (pre-session)
+- Dana tidak bisa ditarik mentor.
+- Dana hanya tercatat sebagai `payments.status = 'escrow'`.
+
+### Fase 4 — Penyelesaian sesi & payout mentor
+1. Mentor / sistem menandai room: `rooms.status = 'finished'`
+2. Sistem menghitung total escrow, platform fee, dan mentor net amount.
+3. Sistem membuat `wallet_entries (credit)` untuk mentor DAN meng-update `payments` menjadi `direction = 'platform_to_mentor'`, `status = 'released'`.
+
+## 5. Refund logic
+**Student cancel:**
+- ≥ 5 jam sebelum sesi: Full refund
+- < 5 jam: 50% refund
+- Setelah sesi dimulai: Tidak ada refund
+
+**Mentor cancel:**
+- Setelah accept: Tidak diperbolehkan.
+
+## 6. Aturan keamanan & teknis
+- **Idempotency**: Setiap pembayaran HARUS punya `idempotency_key` (kombinasi `room_id + participant_id + payment_type`).
+- **RLS & server-side only**: Client tidak boleh insert `payments` langsung.
+- **Validasi wajib**: Room tidak boleh `scheduled` jika ada participant `has_paid = false`. Pembayaran kedua harus ditolak.

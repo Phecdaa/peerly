@@ -85,6 +85,7 @@ export async function POST(
     ) || 0;
 
   if (totalMentorAmount > 0) {
+    // 1. Credit wallet
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (service as any).from("wallet_entries").insert({
       mentor_id: room.mentor_id,
@@ -93,6 +94,16 @@ export async function POST(
       amount: totalMentorAmount,
       reason: "Payout sesi room selesai",
     });
+
+    // 2. Update all escrow payments to released (as per the Payment Concept spec)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (service as any).from("payments")
+      .update({
+        status: "released",
+        direction: "platform_to_mentor",
+      })
+      .eq("room_id", roomId)
+      .eq("status", "escrow");
   }
 
   return NextResponse.json({ ok: true, status: "finished" });
