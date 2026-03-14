@@ -87,6 +87,8 @@ create table if not exists public.rooms (
 
 -- bookings.room_id FK (add after rooms exists)
 alter table public.bookings
+  drop constraint if exists bookings_room_fk;
+alter table public.bookings
   add constraint bookings_room_fk
   foreign key (room_id) references public.rooms (id) on delete set null;
 
