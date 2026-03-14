@@ -37,6 +37,31 @@ create policy "Availabilities: mentors manage own approved" on public.availabili
 drop policy if exists "Availabilities: admin manage all" on public.availabilities;
 create policy "Availabilities: admin manage all" on public.availabilities for all using (public.is_admin(auth.uid())) with check (public.is_admin(auth.uid()));
 
+-- HELPERS TO AVOID INFINITE RECURSION
+create or replace function public.is_room_participant(p_room_id int, p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.room_participants where room_id = p_room_id and user_id = p_user_id
+  );
+$$;
+
+create or replace function public.is_room_host_or_mentor(p_room_id int, p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.rooms where id = p_room_id and (host_id = p_user_id or mentor_id = p_user_id)
+  );
+$$;
+
 -- ROOMS
 alter table public.rooms enable row level security;
 
@@ -46,7 +71,7 @@ create policy "Rooms: participants and mentor read" on public.rooms for select u
   host_id = auth.uid() or
   mentor_id = auth.uid() or
   is_public = true or
-  exists (select 1 from public.room_participants rp where rp.room_id = id and rp.user_id = auth.uid())
+  public.is_room_participant(id, auth.uid())
 );
 
 drop policy if exists "Rooms: host can insert" on public.rooms;
@@ -66,22 +91,21 @@ drop policy if exists "RoomParticipants: read access" on public.room_participant
 create policy "RoomParticipants: read access" on public.room_participants for select using (
   public.is_admin(auth.uid()) or
   user_id = auth.uid() or
-  exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
+  public.is_room_host_or_mentor(room_id, auth.uid())
 );
 
 drop policy if exists "RoomParticipants: host can insert" on public.room_participants;
 create policy "RoomParticipants: host can insert" on public.room_participants for insert with check (
-  -- Permissive insert for the host or the user themselves during room creation
-  exists (select 1 from public.rooms r where r.id = room_id and r.host_id = auth.uid()) or user_id = auth.uid()
+  public.is_room_host_or_mentor(room_id, auth.uid()) or user_id = auth.uid()
 );
 
 drop policy if exists "RoomParticipants: participants can update own payment" on public.room_participants;
 create policy "RoomParticipants: participants can update own payment" on public.room_participants for update using (
   user_id = auth.uid() or public.is_admin(auth.uid()) or
-  exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
+  public.is_room_host_or_mentor(room_id, auth.uid())
 ) with check (
   user_id = auth.uid() or public.is_admin(auth.uid()) or
-  exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
+  public.is_room_host_or_mentor(room_id, auth.uid())
 );
 
 -- ROOM_MESSAGES
@@ -89,12 +113,15 @@ alter table public.room_messages enable row level security;
 
 drop policy if exists "RoomMessages: read access" on public.room_messages;
 create policy "RoomMessages: read access" on public.room_messages for select using (
-  public.is_admin(auth.uid()) or exists (select 1 from public.room_participants rp where rp.room_id = room_id and rp.user_id = auth.uid()) or exists (select 1 from public.rooms r where r.id = room_id and r.mentor_id = auth.uid())
+  public.is_admin(auth.uid()) or
+  public.is_room_participant(room_id, auth.uid()) or
+  public.is_room_host_or_mentor(room_id, auth.uid())
 );
 
 drop policy if exists "RoomMessages: participants insert" on public.room_messages;
 create policy "RoomMessages: participants insert" on public.room_messages for insert with check (
-  exists (select 1 from public.room_participants rp where rp.room_id = room_id and rp.user_id = auth.uid()) or exists (select 1 from public.rooms r where r.id = room_id and r.mentor_id = auth.uid())
+  public.is_room_participant(room_id, auth.uid()) or
+  public.is_room_host_or_mentor(room_id, auth.uid())
 );
 
 -- PAYMENTS
