@@ -28,12 +28,17 @@ export default async function RoomPage({ params }: RoomPageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    notFound();
+    return (
+      <div className="p-8 text-red-500">
+        <h1>Debug Error: Unauthorized</h1>
+        <p>Bypass notFound(): User object is null from supabase.auth.getUser().</p>
+      </div>
+    );
   }
 
   const roomId = parseInt(id, 10);
   if (Number.isNaN(roomId)) {
-    notFound();
+    return <div className="p-8 text-red-500">Debug Error: Room ID is NaN</div>;
   }
 
   const { data: room } = await supabase
@@ -65,7 +70,16 @@ export default async function RoomPage({ params }: RoomPageProps) {
     .single();
 
   if (!room) {
-    notFound();
+    // If we reach here, it's either an RLS issue or genuinely not created.
+    return (
+      <div className="p-8 text-red-500">
+        <h1 className="text-xl font-bold">Debug Error: Room not found</h1>
+        <p>Room ID: {roomId}</p>
+        <p>User ID: {user.id}</p>
+        <p>Apakah room berhasil terbuat di database? Cek di Supabase Table Editor if ID {roomId} exists.</p>
+        <p>Kemungkinan: RLS Policy memblokir read, atau transaksi create gagal di background.</p>
+      </div>
+    );
   }
 
   const { data: mentorProfile } = await supabase
@@ -89,7 +103,13 @@ export default async function RoomPage({ params }: RoomPageProps) {
   );
 
   if (!isHost && !isParticipant && !isMentor) {
-    notFound();
+    return (
+      <div className="p-8 text-red-500">
+        <h1 className="text-xl font-bold">Debug Error: User is not authorized to view this room</h1>
+        <p>Room ID: {roomId}. Host ID: {room.host_id}. Your ID: {user.id}.</p>
+        <p>isHost: {String(isHost)}, isMentor: {String(isMentor)}, isParticipant: {String(isParticipant)}</p>
+      </div>
+    );
   }
 
   const participantIds = [
