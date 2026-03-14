@@ -217,9 +217,23 @@ export default async function RoomPage({ params }: RoomPageProps) {
             />
           </section>
 
-          <section className="card space-y-3">
-            <h2 className="card-title">Peserta</h2>
-            <ul className="space-y-1 text-sm text-zinc-700">
+          <section className="card space-y-4">
+            <div>
+              <h2 className="card-title flex items-center justify-between">
+                <span>Peserta</span>
+                <span className="text-xs font-normal text-zinc-500">{paidCount}/{intendedCount} Lunas</span>
+              </h2>
+              
+              {/* Progress Bar */}
+              <div className="mt-3 overflow-hidden rounded-full bg-zinc-100">
+                <div 
+                  className="h-2 rounded-full bg-emerald-500 transition-all duration-500" 
+                  style={{ width: `${Math.min(100, Math.max(0, (paidCount / intendedCount) * 100))}%` }}
+                />
+              </div>
+            </div>
+
+            <ul className="space-y-2 text-sm text-zinc-700 divide-y divide-zinc-100">
               {(room.room_participants ?? []).map(
                 (p: {
                   id: number;
@@ -229,20 +243,29 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 }) => (
                   <li
                     key={p.id}
-                    className="flex items-center justify-between gap-2"
+                    className="flex items-center justify-between gap-3 pt-2 first:pt-0"
                   >
-                    <span className="truncate">
-                      {p.user_id === user.id
-                        ? "Kamu"
-                        : profileMap[p.user_id] ?? "Peserta"}
-                    </span>
-                    <div className="flex items-center gap-1 text-[11px]">
-                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 uppercase tracking-wide text-zinc-500">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-medium text-indigo-700">
+                        {(p.user_id === user.id ? "K" : profileMap[p.user_id]?.charAt(0) ?? "P")}
+                      </div>
+                      <span className="truncate font-medium">
+                        {p.user_id === user.id
+                          ? "Kamu"
+                          : profileMap[p.user_id] ?? "Peserta"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] shrink-0">
+                      <span className="rounded bg-zinc-100 px-1.5 py-0.5 uppercase tracking-wide text-zinc-500">
                         {p.role}
                       </span>
-                      {p.has_paid && (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700">
+                      {p.has_paid ? (
+                        <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700 font-medium">
                           Lunas
+                        </span>
+                      ) : (
+                        <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-700 font-medium">
+                          Belum
                         </span>
                       )}
                     </div>
@@ -254,9 +277,17 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
           <section className="card space-y-3">
             <h2 className="card-title">Mentor</h2>
-            <p className="text-sm text-zinc-700">
-              {profileMap[room.mentor_id] ?? "Mentor"}
-            </p>
+            <div className="flex items-center gap-3 rounded-lg border border-zinc-100 p-3 bg-zinc-50/50 hover:bg-zinc-50 transition">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 font-medium text-white shadow-sm ring-2 ring-white">
+                {(profileMap[room.mentor_id] ?? "M").charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-zinc-900 truncate">
+                  {profileMap[room.mentor_id] ?? "Mentor"}
+                </p>
+                <p className="text-xs text-zinc-500">Mentor Room</p>
+              </div>
+            </div>
           </section>
         </aside>
       </main>

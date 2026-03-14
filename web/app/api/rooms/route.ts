@@ -153,6 +153,9 @@ export async function POST(request: NextRequest) {
     );
 
   if (participantsErr) {
+    // Rollback room creation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (service as any).from("rooms").delete().eq("id", room.id);
     return NextResponse.json(
       { error: participantsErr.message },
       { status: 500 }

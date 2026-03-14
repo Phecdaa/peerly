@@ -38,11 +38,10 @@ export function CreateRoomForm({
 
   const availableSlots = slots.filter((s) => !s.is_booked && !s.has_room);
 
-  // When slot changes, clamp intended count to slot capacity
+  const [step, setStep] = useState(1);
+
   const maxForSlot = slot ? slot.max_students : 1;
-  const effectiveIntended = slot
-    ? Math.min(Math.max(1, intendedCount), maxForSlot)
-    : 1;
+  const effectiveIntended = slot ? Math.min(Math.max(1, intendedCount), maxForSlot) : 1;
 
   function formatSlot(s: Slot) {
     const start = new Date(s.start_ts);
@@ -55,21 +54,13 @@ export function CreateRoomForm({
   }
 
   const durationMinutes = slot
-    ? Math.round(
-        (new Date(slot.end_ts).getTime() - new Date(slot.start_ts).getTime()) /
-          60000
-      )
+    ? Math.round((new Date(slot.end_ts).getTime() - new Date(slot.start_ts).getTime()) / 60000)
     : 0;
   const totalPrice = (durationMinutes / 60) * mentorHourlyRate;
-  const perPerson =
-    effectiveIntended > 0 ? totalPrice / effectiveIntended : totalPrice;
+  const perPerson = effectiveIntended > 0 ? totalPrice / effectiveIntended : totalPrice;
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!slot) {
-      setError("Pilih slot dulu.");
-      return;
-    }
+  async function handleSubmit() {
+    if (!slot) return;
     setLoading(true);
     setError(null);
 
@@ -96,12 +87,14 @@ export function CreateRoomForm({
       }
 
       const roomId = data.id;
-      if (roomId == null || roomId === undefined) {
+      if (roomId == null) {
         setError("Room dibuat tapi ID tidak diterima.");
         return;
       }
-      router.refresh();
-      window.location.href = `/rooms/${roomId}`;
+      router.refresh(); // Invalidate NextJS Cache
+      setTimeout(() => {
+        router.push(`/rooms/${roomId}`);
+      }, 500);
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
     } finally {
@@ -110,162 +103,171 @@ export function CreateRoomForm({
   }
 
   if (courses.length === 0) {
-    return (
-      <p className="text-sm text-zinc-500">
-        Mentor ini belum mengatur mata kuliah.
-      </p>
-    );
+    return <p className="text-sm text-zinc-500">Mentor ini belum mengatur mata kuliah.</p>;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-sm font-semibold text-zinc-900">
-        Atau buat room grup untuk belajar bareng
-      </h3>
-
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">
-          Mata kuliah
-        </label>
-        <select
-          value={courseId}
-          onChange={(e) => setCourseId(parseInt(e.target.value, 10))}
-          className="select"
-        >
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-6">
+        {[1, 2, 3, 4].map((s) => (
+          <div key={s} className="flex items-center gap-2 flex-1">
+            <div
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                step >= s ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500"
+              }`}
+            >
+              {s}
+            </div>
+            {s !== 4 && (
+              <div
+                className={`h-[2px] w-full ${step > s ? "bg-zinc-900" : "bg-zinc-100"}`}
+              />
+            )}
+          </div>
+        ))}
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700">
-          Slot tersedia
-        </label>
-        {availableSlots.length === 0 ? (
-          <p className="text-sm text-zinc-500">
-            Tidak ada slot untuk room (semua sudah dipakai).
-          </p>
-        ) : (
-          <ul className="flex flex-wrap gap-2">
-            {availableSlots.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => setSlot(s)}
-                  className={`btn h-9 rounded-full border px-4 text-xs ${
-                    slot?.id === s.id
-                      ? "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800"
-                      : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"
-                  }`}
-                >
-                  {formatSlot(s)}
-                </button>
-              </li>
-            ))}
-          </ul>
+      <div className="min-h-[250px]">
+        {step === 1 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+            <h3 className="text-lg font-semibold text-zinc-900">Pilih Topik & Waktu</h3>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Mata kuliah</label>
+              <select value={courseId} onChange={(e) => setCourseId(parseInt(e.target.value, 10))} className="select w-full">
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Slot tersedia</label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {availableSlots.length === 0 ? (
+                  <p className="text-sm text-zinc-500">Tidak ada slot untuk room.</p>
+                ) : (
+                  availableSlots.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSlot(s)}
+                      className={`text-left rounded-lg border p-3 text-sm transition ${
+                        slot?.id === s.id ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300"
+                      }`}
+                    >
+                      <div className="font-medium">{formatSlot(s)}</div>
+                      <div className={`text-xs mt-1 ${slot?.id === s.id ? "text-zinc-300" : "text-zinc-500"}`}>Max {s.max_students} peserta</div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+            <h3 className="text-lg font-semibold text-zinc-900">Peserta & Mode</h3>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Jumlah peserta</label>
+              <select value={effectiveIntended} onChange={(e) => setIntendedCount(parseInt(e.target.value, 10))} className="select w-full">
+                {Array.from({ length: maxForSlot }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>{n} {n === 1 ? "orang (private)" : "orang"}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-zinc-500">Kapasitas mentor: {maxForSlot} orang</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Mode sesi</label>
+              <select value={mode} onChange={(e) => setMode(e.target.value as any)} className="select w-full">
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+            <h3 className="text-lg font-semibold text-zinc-900">Detail Sesi (Opsional)</h3>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Judul sesi</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="input w-full"
+                placeholder={`Belajar bareng ${courses.find(c => c.id === courseId)?.name ?? ""}`}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Deskripsi (Topik Khusus)</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="textarea w-full"
+                rows={3}
+                placeholder="Fokus ke bab mana? Ada tugas spesifik?"
+              />
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+            <h3 className="text-lg font-semibold text-zinc-900">Konfirmasi Biaya</h3>
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">Durasi</span>
+                <span className="font-medium">{durationMinutes} menit</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">Jumlah Peserta</span>
+                <span className="font-medium">{effectiveIntended} orang</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-zinc-200 pt-3">
+                <span className="text-zinc-500">Total Biaya Sesi</span>
+                <span className="font-medium text-zinc-900">Rp {totalPrice.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-lg font-semibold text-indigo-700 border-t border-indigo-100 pt-3 bg-indigo-50/50 -mx-5 px-5 pb-1">
+                <span>Porsi Patunganmu</span>
+                <span>Rp {Math.round(perPerson).toLocaleString()}</span>
+              </div>
+            </div>
+            {error && <p className="text-sm text-red-600 font-medium bg-red-50 p-3 rounded-lg">{error}</p>}
+          </div>
         )}
       </div>
 
-      {slot && (
-        <>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-700">
-              Jumlah peserta yang diinginkan
-            </label>
-            <select
-              value={effectiveIntended}
-              onChange={(e) =>
-                setIntendedCount(parseInt(e.target.value, 10))
-              }
-              className="select"
-            >
-              {Array.from({ length: maxForSlot }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n} {n === 1 ? "orang (private)" : "orang"}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-zinc-500">
-              Maks. untuk slot ini: {maxForSlot} orang
-            </p>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-700">
-              Judul (opsional)
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="input"
-              placeholder={`Sesi ${courses.find((c) => c.id === courseId)?.name ?? ""} dengan ${mentorName}`}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-700">
-              Deskripsi (opsional)
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="textarea"
-              rows={2}
-              placeholder="Fokus materi yang ingin dipelajari..."
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-700">
-              Mode sesi
-            </label>
-            <select
-              value={mode}
-              onChange={(e) =>
-                setMode(e.target.value as "online" | "offline" | "hybrid")
-              }
-              className="select"
-            >
-              <option value="online">Online</option>
-              <option value="offline">Offline</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
-          </div>
-
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="badge">Durasi: {durationMinutes} menit</span>
-              <span className="badge">
-                Peserta: {effectiveIntended} orang (max {maxForSlot})
-              </span>
-              <span className="badge border-indigo-200 bg-indigo-50 text-indigo-800">
-                Total: Rp {totalPrice.toLocaleString()}
-              </span>
-              <span className="badge">
-                Per orang: Rp {Math.round(perPerson).toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </>
-      )}
-
-      {error && (
-        <p className="text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading || !slot}
-        className="btn btn-primary w-full"
-      >
-        {loading ? "Membuat..." : "Buat room"}
-      </button>
-    </form>
+      <div className="flex justify-between pt-4 border-t border-zinc-200">
+        <button
+          type="button"
+          onClick={() => setStep(step - 1)}
+          disabled={step === 1 || loading}
+          className="btn border border-zinc-200 bg-white text-zinc-800 disabled:opacity-50"
+        >
+          Kembali
+        </button>
+        {step < 4 ? (
+          <button
+            type="button"
+            onClick={() => setStep(step + 1)}
+            disabled={!slot && step === 1}
+            className="btn btn-primary"
+          >
+            Lanjut
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="btn bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 min-w-[120px]"
+          >
+            {loading ? "Membuat..." : "Konfirmasi & Buat"}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
