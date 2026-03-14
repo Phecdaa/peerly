@@ -42,7 +42,11 @@ alter table public.rooms enable row level security;
 
 drop policy if exists "Rooms: participants and mentor read" on public.rooms;
 create policy "Rooms: participants and mentor read" on public.rooms for select using (
-  public.is_admin(auth.uid()) or host_id = auth.uid() or mentor_id = auth.uid() or is_public = true or exists (select 1 from public.room_participants rp where rp.room_id = id and rp.user_id = auth.uid())
+  public.is_admin(auth.uid()) or
+  host_id = auth.uid() or
+  mentor_id = auth.uid() or
+  is_public = true or
+  exists (select 1 from public.room_participants rp where rp.room_id = id and rp.user_id = auth.uid())
 );
 
 drop policy if exists "Rooms: host can insert" on public.rooms;
@@ -60,19 +64,24 @@ alter table public.room_participants enable row level security;
 
 drop policy if exists "RoomParticipants: read access" on public.room_participants;
 create policy "RoomParticipants: read access" on public.room_participants for select using (
-  public.is_admin(auth.uid()) or user_id = auth.uid() or exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
+  public.is_admin(auth.uid()) or
+  user_id = auth.uid() or
+  exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
 );
 
 drop policy if exists "RoomParticipants: host can insert" on public.room_participants;
 create policy "RoomParticipants: host can insert" on public.room_participants for insert with check (
+  -- Permissive insert for the host or the user themselves during room creation
   exists (select 1 from public.rooms r where r.id = room_id and r.host_id = auth.uid()) or user_id = auth.uid()
 );
 
 drop policy if exists "RoomParticipants: participants can update own payment" on public.room_participants;
 create policy "RoomParticipants: participants can update own payment" on public.room_participants for update using (
-  user_id = auth.uid() or public.is_admin(auth.uid()) or exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
+  user_id = auth.uid() or public.is_admin(auth.uid()) or
+  exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
 ) with check (
-  user_id = auth.uid() or public.is_admin(auth.uid()) or exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
+  user_id = auth.uid() or public.is_admin(auth.uid()) or
+  exists (select 1 from public.rooms r where r.id = room_id and (r.mentor_id = auth.uid() or r.host_id = auth.uid()))
 );
 
 -- ROOM_MESSAGES
