@@ -41,7 +41,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
     return <div className="p-8 text-red-500">Debug Error: Room ID is NaN</div>;
   }
 
-  const { data: room } = await supabase
+  const { data: room, error: queryError } = await supabase
     .from("rooms")
     .select(
       `
@@ -69,7 +69,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
     .eq("id", roomId)
     .single();
 
-  if (!room) {
+  if (!room || queryError) {
     // If we reach here, it's either an RLS issue or genuinely not created.
     return (
       <div className="p-8 text-red-500">
@@ -77,7 +77,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
         <p>Room ID: {roomId}</p>
         <p>User ID: {user.id}</p>
         <p>Apakah room berhasil terbuat di database? Cek di Supabase Table Editor if ID {roomId} exists.</p>
-        <p>Kemungkinan: RLS Policy memblokir read, atau transaksi create gagal di background.</p>
+        <p>Kemungkinan: RLS Policy memblokir read, transaksi create gagal, atau Skema Database belum ter-update.</p>
+        <p className="mt-4 font-mono text-xs bg-red-100 p-4 rounded text-black overflow-auto">
+          Supabase Error Details: {JSON.stringify(queryError || "No error object returned, data was null")}
+        </p>
       </div>
     );
   }
