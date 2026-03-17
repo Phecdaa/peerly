@@ -32,6 +32,7 @@ export function CreateRoomForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState<"online" | "offline" | "hybrid">("online");
+  const [paymentMode, setPaymentMode] = useState<"split_equal" | "split_custom">("split_equal");
   const [intendedCount, setIntendedCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +75,7 @@ export function CreateRoomForm({
           title: title.trim() || null,
           description: description.trim() || null,
           mode,
+          payment_mode: paymentMode,
           is_public: false,
           intended_participant_count: effectiveIntended,
         }),
@@ -184,6 +186,15 @@ export function CreateRoomForm({
                 <option value="hybrid">Hybrid</option>
               </select>
             </div>
+            {effectiveIntended > 1 && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zinc-700">Jenis Patungan Biaya</label>
+                <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value as any)} className="select w-full">
+                  <option value="split_equal">Bagi Rata (Setiap orang bayar sama)</option>
+                  <option value="split_custom">Atur Manual Nanti (Oleh host)</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 
