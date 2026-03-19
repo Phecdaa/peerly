@@ -45,16 +45,16 @@ export async function GET(
   }
 
   // Chat only active during session window for accepted rooms
-  if (!["scheduled", "ongoing"].includes(room.status)) {
+  if (!["waiting_payment", "scheduled", "ongoing", "finished"].includes(room.status)) {
     return NextResponse.json(
-      { error: "Chat belum aktif" },
+      { error: "Chat belum aktif, menunggu persetujuan mentor." },
       { status: 400 }
     );
   }
   const now = new Date();
-  if (now < new Date(room.scheduled_start) || now > new Date(room.scheduled_end)) {
+  if (now > new Date(room.scheduled_end)) {
     return NextResponse.json(
-      { error: "Chat hanya aktif saat sesi berlangsung" },
+      { error: "Chat sudah ditutup karena sesi telah berakhir." },
       { status: 400 }
     );
   }
@@ -137,19 +137,18 @@ export async function POST(
   }
 
   // Chat only active during session window for accepted rooms
-  if (!["scheduled", "ongoing"].includes(room.status)) {
+  if (!["waiting_payment", "scheduled", "ongoing", "finished"].includes(room.status)) {
     return NextResponse.json(
-      { error: "Chat belum aktif" },
+      { error: "Chat belum aktif, menunggu persetujuan mentor." },
       { status: 400 }
     );
   }
 
   const now = new Date();
-  const sessionStart = new Date(room.scheduled_start);
   const sessionEnd = new Date(room.scheduled_end);
-  if (now < sessionStart || now > sessionEnd) {
+  if (now > sessionEnd) {
     return NextResponse.json(
-      { error: "Chat hanya aktif saat sesi berlangsung" },
+      { error: "Chat sudah ditutup karena sesi telah berakhir." },
       { status: 400 }
     );
   }

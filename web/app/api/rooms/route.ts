@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       payment_mode,
       scheduled_start: availability.start_ts,
       scheduled_end: availability.end_ts,
-      status: "waiting_payment", // DEMO BYPASS: skips mentor acceptance so host can pay immediately
+      status: "pending_mentor_accept",
       intended_participant_count,
     })
     .select("id")
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     id: Number(room.id),
-    status: "waiting_payment", // DEMO BYPASS
+    status: "pending_mentor_accept",
   });
 }
 

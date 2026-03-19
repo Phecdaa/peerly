@@ -147,8 +147,29 @@ export default async function RoomPage({ params }: RoomPageProps) {
     60000;
   const hourlyRate = Number(mentorProfile?.hourly_rate ?? 0);
   const totalAmount = (hourlyRate * durationMin) / 60;
-  const amountPerPerson =
+  let amountPerPerson =
     intendedCount > 0 ? totalAmount / intendedCount : totalAmount;
+  
+  if (room.payment_mode === "host_pays_all") {
+    amountPerPerson = user.id === room.host_id ? totalAmount : 0;
+  }
+
+  const hostParticipant = (room.room_participants ?? []).find(
+    (p: { user_id: string, has_paid: boolean }) => p.user_id === room.host_id
+  );
+  const isHostPaid = hostParticipant?.has_paid ?? false;
+
+  let actualHasPaid = hasPaid;
+  let actualPaidCount = paidCount;
+
+  if (room.payment_mode === "host_pays_all") {
+    if (isHostPaid) {
+      actualHasPaid = true;
+      actualPaidCount = intendedCount;
+    } else if (!isHost) {
+      actualHasPaid = false;
+    }
+  }
 
   const now = new Date();
   const sessionEnd = new Date(room.scheduled_end);
@@ -183,7 +204,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             {STATUS_LABELS[room.status] ?? room.status}
           </span>
           <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 text-zinc-500">
-            {participantCount} peserta · {paidCount} lunas
+            {participantCount} peserta · {actualPaidCount} lunas
           </span>
         </div>
       </header>
@@ -224,9 +245,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
               roomId={roomId}
               role={role}
               status={room.status}
-              hasPaid={hasPaid}
+              hasPaid={actualHasPaid}
               amountPerPerson={amountPerPerson}
               isSessionEnded={isSessionEnded}
+              paymentMode={room.payment_mode}
             />
           </section>
 
@@ -244,7 +266,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             <div>
               <h2 className="card-title flex items-center justify-between">
                 <span>Peserta</span>
-                <span className="text-xs font-normal text-zinc-500">{paidCount}/{intendedCount} Lunas</span>
+                <span className="text-xs font-normal text-zinc-500">{actualPaidCount}/{intendedCount} Lunas</span>
               </h2>
               
               {/* Progress Bar */}

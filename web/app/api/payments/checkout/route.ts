@@ -55,9 +55,11 @@ export async function POST(request: NextRequest) {
       `
       id,
       mentor_id,
+      host_id,
       scheduled_start,
       scheduled_end,
       status,
+      payment_mode,
       intended_participant_count,
       room_participants ( user_id )
     `
@@ -105,11 +107,19 @@ export async function POST(request: NextRequest) {
   // Split by intended participant count so each person pays a fixed share (no double payment per user)
   const intendedCount = Math.max(
     1,
-    Number((room as RoomWithParticipants).intended_participant_count) ||
+    Number((room as any).intended_participant_count) ||
       room.room_participants?.length ||
       1
   );
-  const amountPerParticipant = baseAmount / intendedCount;
+  
+  let amountPerParticipant = baseAmount / intendedCount;
+  if ((room as any).payment_mode === "host_pays_all") {
+    amountPerParticipant = user.id === (room as any).host_id ? baseAmount : 0;
+  }
+
+  if (amountPerParticipant === 0) {
+    return NextResponse.json({ ok: true, status: "free" });
+  }
 
   const effectiveIdempotencyKey =
     idempotency_key ?? `room-${room_id}-user-${user.id}`;
@@ -182,7 +192,11 @@ export async function POST(request: NextRequest) {
   const paidCount =
     (participantsAfter ?? []).filter((p: { has_paid: boolean }) => p.has_paid === true)
       .length ?? 0;
-  const allPaid = paidCount === intendedCount;
+  
+  let allPaid = paidCount === intendedCount;
+  if ((room as any).payment_mode === "host_pays_all" && user.id === (room as any).host_id) {
+    allPaid = true;
+  }
 
   if (allPaid) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

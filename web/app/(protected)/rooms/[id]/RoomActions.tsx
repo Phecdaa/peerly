@@ -10,6 +10,7 @@ type Props = {
   hasPaid: boolean;
   amountPerPerson?: number;
   isSessionEnded: boolean;
+  paymentMode?: string;
 };
 
 export function RoomActions({
@@ -19,6 +20,7 @@ export function RoomActions({
   hasPaid,
   amountPerPerson = 0,
   isSessionEnded,
+  paymentMode = "split_equal",
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
@@ -83,14 +85,20 @@ export function RoomActions({
         !hasPaid &&
         !isSessionEnded && (
           <div>
-            <button
-              type="button"
-              onClick={pay}
-              disabled={!!loading}
-              className="btn btn-primary w-full"
-            >
-              {loading === "pay" ? "Memproses..." : `Bayar Rp ${amountPerPerson.toLocaleString()}`}
-            </button>
+            {amountPerPerson > 0 ? (
+              <button
+                type="button"
+                onClick={pay}
+                disabled={!!loading}
+                className="btn btn-primary w-full"
+              >
+                {loading === "pay" ? "Memproses..." : `Bayar Rp ${amountPerPerson.toLocaleString()}`}
+              </button>
+            ) : (
+              <div className="rounded-lg bg-orange-50 border border-orange-100 p-3 text-sm text-orange-800 text-center">
+                Menunggu Host menyelesaikan pembayaran
+              </div>
+            )}
           </div>
         )}
 
