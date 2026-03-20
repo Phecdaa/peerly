@@ -83,21 +83,23 @@ export function RoomChat({
         ) : messages.length === 0 ? (
           <p className="text-sm text-zinc-500">Belum ada pesan.</p>
         ) : (
-          messages.map((m) => (
-            <div key={m.id} className="text-sm">
-              <span className="font-medium text-zinc-800">
-                {m.sender_id === currentUserId
-                  ? "Kamu"
-                  : profileMap[m.sender_id] ?? "Peserta"}
-              </span>
-              <span className="text-zinc-500 text-xs ml-2">
-                {new Date(m.created_at).toLocaleTimeString("id-ID", {
-                  timeStyle: "short",
-                })}
-              </span>
-              <p className="mt-0.5 text-zinc-700 break-words">{m.content}</p>
-            </div>
-          ))
+          messages.map((m) => {
+            const isMe = m.sender_id === currentUserId;
+            return (
+              <div key={m.id} className={`flex flex-col mb-2 ${isMe ? 'items-end' : 'items-start'}`}>
+                <span className="text-[10px] text-zinc-500 mb-1 px-1 font-medium tracking-wide">
+                  {isMe ? "Kamu" : profileMap[m.sender_id] ?? "Peserta"} • {new Date(m.created_at).toLocaleTimeString("id-ID", {timeStyle: "short"})}
+                </span>
+                <div className={`px-4 py-2.5 text-sm rounded-2xl max-w-[85%] break-words shadow-sm ${
+                  isMe 
+                    ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                    : 'bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-tl-sm'
+                }`}>
+                  {m.content}
+                </div>
+              </div>
+            );
+          })
         )}
         <div ref={bottomRef} />
       </div>

@@ -4,6 +4,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { RoomChat } from "./RoomChat";
 import { RoomActions } from "./RoomActions";
 import { InviteByEmailForm } from "./InviteByEmailForm";
+import { RoomTime } from "./RoomTime";
 
 export const dynamic = "force-dynamic";
 
@@ -179,6 +180,11 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
   const role = isMentor ? "mentor" : isHost ? "host" : "participant";
 
+  const hasActions = 
+    (role !== "mentor" && room.status === "waiting_payment" && !actualHasPaid && !isSessionEnded) ||
+    (role === "mentor" && room.status === "pending_mentor_accept" && !isSessionEnded) ||
+    (role === "mentor" && room.status === "scheduled" && isSessionEnded);
+
   return (
     <div className="page space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -192,11 +198,8 @@ export default async function RoomPage({ params }: RoomPageProps) {
           <h1 className="mt-1 text-xl font-semibold text-zinc-900">
             {room.title || "Sesi belajar"}
           </h1>
-          <p className="text-sm text-zinc-500">
-            {new Date(room.scheduled_start).toLocaleString("id-ID")} –{" "}
-            {new Date(room.scheduled_end).toLocaleTimeString("id-ID", {
-              timeStyle: "short",
-            })}
+          <p className="text-sm text-zinc-500 mt-1">
+            <RoomTime startTs={room.scheduled_start} endTs={room.scheduled_end} />
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs">
@@ -239,18 +242,30 @@ export default async function RoomPage({ params }: RoomPageProps) {
         </div>
 
         <aside className="space-y-4">
-          <section className="card space-y-3">
-            <h2 className="card-title">Aksi</h2>
-            <RoomActions
-              roomId={roomId}
-              role={role}
-              status={room.status}
-              hasPaid={actualHasPaid}
-              amountPerPerson={amountPerPerson}
-              isSessionEnded={isSessionEnded}
-              paymentMode={room.payment_mode}
-            />
-          </section>
+          {["online", "hybrid"].includes(room.mode) && ["scheduled", "ongoing"].includes(room.status) && (
+            <section className="card space-y-3 border-indigo-200 bg-indigo-50/50">
+              <h2 className="text-sm font-semibold text-indigo-900">Virtual Meeting (Live)</h2>
+              <a href="https://meet.google.com/peerly-demo-room" target="_blank" rel="noopener noreferrer" className="block text-indigo-700 underline text-sm break-all font-medium hover:text-indigo-800">
+                https://meet.google.com/peerly-demo-room
+              </a>
+              <p className="text-xs text-indigo-600">Gunakan link GMeet di atas ketika waktu sesi tiba.</p>
+            </section>
+          )}
+
+          {hasActions && (
+            <section className="card space-y-3">
+              <h2 className="card-title">Aksi</h2>
+              <RoomActions
+                roomId={roomId}
+                role={role}
+                status={room.status}
+                hasPaid={actualHasPaid}
+                amountPerPerson={amountPerPerson}
+                isSessionEnded={isSessionEnded}
+                paymentMode={room.payment_mode}
+              />
+            </section>
+          )}
 
           <section className="card space-y-3">
             <h2 className="card-title">Undang peserta</h2>
