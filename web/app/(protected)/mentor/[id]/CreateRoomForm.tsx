@@ -32,7 +32,7 @@ export function CreateRoomForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState<"online" | "offline" | "hybrid">("online");
-  const [paymentMode, setPaymentMode] = useState<"split_equal" | "split_custom">("split_equal");
+  const [paymentMode, setPaymentMode] = useState<"split_equal" | "host_pays_all">("split_equal");
   const [intendedCount, setIntendedCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export function CreateRoomForm({
     ? Math.round((new Date(slot.end_ts).getTime() - new Date(slot.start_ts).getTime()) / 60000)
     : 0;
   const totalPrice = (durationMinutes / 60) * mentorHourlyRate;
-  const perPerson = effectiveIntended > 0 ? totalPrice / effectiveIntended : totalPrice;
+  const perPerson = paymentMode === "host_pays_all" ? totalPrice : (effectiveIntended > 0 ? totalPrice / effectiveIntended : totalPrice);
 
   async function handleSubmit() {
     if (!slot) return;
@@ -241,7 +241,7 @@ export function CreateRoomForm({
                 <span className="font-medium text-zinc-900">Rp {totalPrice.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-lg font-semibold text-indigo-700 border-t border-indigo-100 pt-3 bg-indigo-50/50 -mx-5 px-5 pb-1">
-                <span>Porsi Patunganmu</span>
+                <span>{paymentMode === "host_pays_all" ? "Total Biaya (Ditanggung Host)" : "Porsi Patunganmu"}</span>
                 <span>Rp {Math.round(perPerson).toLocaleString()}</span>
               </div>
             </div>
