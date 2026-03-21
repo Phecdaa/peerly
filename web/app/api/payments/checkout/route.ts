@@ -204,6 +204,15 @@ export async function POST(request: NextRequest) {
       .from("rooms")
       .update({ status: "scheduled" })
       .eq("id", room_id);
+
+    // Phase 12: Silent notification to Mentor
+    service.from("notifications").insert({
+      user_id: room.mentor_id,
+      title: "Pesanan Telah Dibayar!",
+      message: `Hore! Pesanan telah dibayar lunas dan ruangan akan segera dibuka saat jam sesi dimulai.`,
+      type: "room_update",
+      link_url: `/rooms/${room_id}`
+    }).then(({ error }) => { if (error) console.log("Notif error ignored:", error.message) });
   }
 
   return NextResponse.json({

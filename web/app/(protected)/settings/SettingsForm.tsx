@@ -125,6 +125,14 @@ export function SettingsForm({ user, profile }: any) {
         
         {/* Menu List Bawah */}
         <div className="bg-white w-full rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 mt-6 overflow-hidden">
+           {/* Link Mentor Area */}
+           <Link href={profile.mentor_status === "approved" ? `/mentor/${user.id}/edit` : "/apply"} className="flex items-center justify-between p-4 border-b border-blue-50 bg-blue-50/30 hover:bg-blue-50 transition group">
+              <span className="text-sm font-bold text-blue-700">
+                 {profile.mentor_status === "approved" ? "Kelola Profil Mentor" : (profile.is_mentor ? "Status Pengajuan Mentor" : "Daftar Jadi Mentor")}
+              </span>
+              <svg className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+           </Link>
+
            <Link href="/dashboard" className="flex items-center justify-between p-4 border-b border-zinc-50 hover:bg-zinc-50 transition group">
               <span className="text-sm font-medium text-zinc-700">Beranda Dashboard</span>
               <svg className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>

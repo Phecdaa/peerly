@@ -2,32 +2,57 @@ import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { MentorList } from "./MentorList";
 
-export default async function MentorsPage() {
+export default async function MentorsPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const supabase = await getSupabaseServerClient();
   const { data: courses = [] } = await supabase
     .from("courses")
     .select("id, name, slug")
     .order("name");
 
-  const { data: mentors = [] } = await supabase
+  const { data: mentorsUnfiltered } = await supabase
     .from("profiles")
-    .select("id, full_name, university, bio, hourly_rate")
+    .select(`
+      id,
+      full_name,
+      avatar_url,
+      university,
+      bio,
+      hourly_rate,
+      courses ( id, name, slug ),
+      availabilities ( id )
+    `)
     .eq("is_mentor", true)
-    .eq("mentor_status", "approved")
-    .order("full_name");
+    .eq("mentor_status", "approved");
+
+  // Require mentors to have at least one course matching the search, and at least one availability slot
+  let mentors = (mentorsUnfiltered ?? []).filter((m: any) => {
+    const hasCourses = m.courses && m.courses.length > 0;
+    const hasAvailabilities = m.availabilities && m.availabilities.length > 0;
+    
+    // Check subject filter if present
+    if (searchParams.subject) {
+      if (!hasCourses) return false;
+      const matchesSubject = m.courses.some((c: any) => c.slug === searchParams.subject);
+      if (!matchesSubject) return false;
+    }
+
+    return hasCourses && hasAvailabilities;
+  });
 
   const withCourses = await Promise.all(
     (mentors ?? []).map(async (m) => {
-      const { data: mc } = await supabase
-        .from("mentor_courses")
-        .select("course_id")
-        .eq("mentor_id", m.id);
-      const cids = (mc ?? []).map((x) => x.course_id);
-      const { data: crs } = await supabase
-        .from("courses")
-        .select("id, name, slug")
-        .in("id", cids.length ? cids : [0]);
-      return { ...m, courses: crs ?? [] };
+      // The courses are already fetched with the mentor profile, so this part can be simplified
+      // to just return the mentor with their pre-fetched courses.
+      // However, to maintain the original structure of `withCourses` if it's used elsewhere
+      // for a specific format, we'll adapt it.
+      // If `m.courses` already contains the full course objects, we can use them directly.
+      // Otherwise, if `m.courses` only contains IDs, the original logic would be needed.
+      // Assuming `m.courses` from the initial select is already the full course objects:
+      return { ...m, courses: m.courses ?? [] };
     })
   );
 

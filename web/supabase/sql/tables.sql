@@ -216,3 +216,26 @@ create or replace function public.is_admin(p_user_id uuid) returns boolean langu
     select 1 from public.profiles where id = p_user_id and role = 'admin'
   );
 $$;
+
+-- ==========================================
+-- PHASE 12: Notifications
+-- ==========================================
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  title text not null,
+  message text not null,
+  type text not null, -- 'room_update', 'promo', 'system'
+  is_read boolean default false,
+  link_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS for notifications
+alter table public.notifications enable row level security;
+create policy "Users can view their own notifications"
+  on public.notifications for select
+  using ( auth.uid() = user_id );
+create policy "Users can update their own notifications"
+  on public.notifications for update
+  using ( auth.uid() = user_id );

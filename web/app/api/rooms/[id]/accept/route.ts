@@ -63,5 +63,14 @@ export async function POST(
     .update({ status: "waiting_payment", updated_at: new Date().toISOString() })
     .eq("id", roomId);
 
+  // Phase 12: Silent notification to Host
+  service.from("notifications").insert({
+    user_id: room.host_id,
+    title: "Pesanan Diterima!",
+    message: `Mentormu telah menyetujui jadwal. Segera lakukan pembayaran!`,
+    type: "room_update",
+    link_url: `/rooms/${room.id}`
+  }).then(({ error }) => { if (error) console.log("Notif error ignored:", error.message) });
+
   return NextResponse.json({ ok: true, status: "waiting_payment" });
 }

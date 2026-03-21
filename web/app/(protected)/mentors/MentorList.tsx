@@ -7,12 +7,13 @@ type Course = { id: number; name: string; slug: string };
 type Mentor = {
   id: string;
   full_name: string | null;
+  avatar_url?: string | null;
   university: string | null;
-  bio: string | null;
+  bio?: string | null;
   hourly_rate: number | null;
   courses: Course[];
-  average_rating: number | null;
-  review_count: number;
+  average_rating?: number | null;
+  review_count?: number;
 };
 
 export function MentorList({
@@ -66,41 +67,33 @@ export function MentorList({
           <li key={m.id}>
             <Link
               href={`/mentor/${m.id}`}
-              className="card block transition hover:border-zinc-300 hover:shadow-md hover:shadow-zinc-900/10"
+              className="block bg-white p-4 rounded-2xl border border-zinc-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-blue-200 transition"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium text-zinc-900">
-                    {m.full_name ?? "Mentor"}
-                  </p>
-                  {m.university && (
-                    <p className="text-sm text-zinc-500">{m.university}</p>
+              <div className="flex gap-4 items-center">
+                <div
+                  className="w-14 h-14 bg-zinc-200 rounded-xl flex-shrink-0 bg-cover bg-center border-2 border-white shadow-sm"
+                  style={{ backgroundImage: `url(${m.avatar_url || "https://api.dicebear.com/7.x/initials/svg?seed="+encodeURIComponent(m.full_name || "M")})` }}
+                ></div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-bold text-zinc-900 truncate">{m.full_name}</h2>
+                  <p className="text-xs text-zinc-500 truncate mb-1">{m.university || "Universitas"}</p>
+                  <div className="flex gap-2 text-xs text-zinc-500 mb-2">
+                    <span className="flex items-center gap-1 font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded">
+                      ★ {m.average_rating != null ? m.average_rating.toFixed(1) : "Baru"}
+                    </span>
+                    {m.hourly_rate != null && (
+                      <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">
+                        Rp {Number(m.hourly_rate).toLocaleString()}/jam
+                      </span>
+                    )}
+                  </div>
+                  {m.courses && m.courses.length > 0 && (
+                    <p className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-2 py-1 rounded inline-block truncate max-w-full">
+                      {m.courses.map((c: any) => c.name).join(", ")}
+                    </p>
                   )}
                 </div>
-                {m.hourly_rate != null && (
-                  <span className="badge">
-                    Rp {Number(m.hourly_rate).toLocaleString()}/jam
-                  </span>
-                )}
               </div>
-              <p className="mt-1 line-clamp-2 text-sm text-zinc-600">
-                {m.bio ?? "—"}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                {m.average_rating != null && (
-                  <span className="badge border-indigo-200 bg-indigo-50 text-indigo-800">
-                    ★ {m.average_rating.toFixed(1)}
-                  </span>
-                )}
-                {m.review_count > 0 && (
-                  <span className="text-xs text-zinc-500">
-                    {m.review_count} review
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-xs text-zinc-400">
-                {m.courses.map((c) => c.name).join(", ")}
-              </p>
             </Link>
           </li>
         ))}
