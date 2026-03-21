@@ -25,7 +25,7 @@ export function Navigation() {
   const navItems = [
     { label: "Beranda", href: "/dashboard", Icon: HomeIcon },
     { label: "Pesanan", href: "/rooms", Icon: TicketIcon },
-    { label: "Room", href: "/explore", Icon: UsersIcon }, 
+    { label: "Room", href: "/mentors", Icon: UsersIcon }, 
     { label: "Akun", href: "/settings", Icon: UserIcon },
   ];
 

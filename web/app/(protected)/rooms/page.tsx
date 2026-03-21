@@ -4,13 +4,12 @@ import { redirect } from "next/navigation";
 import { RoomTime } from "./[id]/RoomTime";
 
 export default async function RoomsPage() {
-  try {
-    const supabase = await getSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) redirect("/login");
+  if (!user) redirect("/login");
 
     const { data: asHost } = await supabase
       .from("rooms")
@@ -82,7 +81,7 @@ export default async function RoomsPage() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0 justify-center">
                       <p className="text-[10px] text-zinc-500 mb-1 font-medium"><RoomTime startTs={r.scheduled_start} shortDate /></p>
-                      <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {r.id.split('-')[0].toUpperCase()}</p>
+                      <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {String(r.id).split('-')[0].toUpperCase()}</p>
                       <h3 className="font-semibold text-zinc-900 text-sm leading-snug line-clamp-2 mb-2">{r.title || "Sesi belajar"}</h3>
                       <div>
                         <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${['finished', 'ongoing'].includes(r.status) ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
@@ -115,7 +114,7 @@ export default async function RoomsPage() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0 justify-center">
                       <p className="text-[10px] text-zinc-500 mb-1 font-medium"><RoomTime startTs={r.scheduled_start} shortDate /></p>
-                      <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {r.id.split('-')[0].toUpperCase()}</p>
+                      <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {String(r.id).split('-')[0].toUpperCase()}</p>
                       <h3 className="font-semibold text-zinc-900 text-sm leading-snug line-clamp-2 mb-2">{r.title || "Sesi belajar"}</h3>
                       <div>
                         <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${['finished', 'ongoing'].includes(r.status) ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
@@ -148,7 +147,7 @@ export default async function RoomsPage() {
                     </div>
                     <div className="flex flex-col flex-1 min-w-0 justify-center">
                       <p className="text-[10px] text-zinc-500 mb-1 font-medium"><RoomTime startTs={r.scheduled_start} shortDate /></p>
-                      <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {r.id.split('-')[0].toUpperCase()}</p>
+                      <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {String(r.id).split('-')[0].toUpperCase()}</p>
                       <h3 className="font-semibold text-zinc-900 text-sm leading-snug line-clamp-2 mb-2">{r.title || "Sesi belajar"}</h3>
                       <div>
                         <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${['finished', 'ongoing'].includes(r.status) ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
@@ -164,15 +163,5 @@ export default async function RoomsPage() {
         </section>
       </div>
     </div>
-    );
-  } catch (err: any) {
-    return (
-      <div className="p-6 break-words max-w-full text-red-500 font-mono text-xs">
-        <h1 className="font-bold text-lg mb-4">Runtime Error Intercepted!</h1>
-        <p>{err.message}</p>
-        <pre className="mt-4 whitespace-pre-wrap">{err.stack}</pre>
-        <p className="mt-4 text-blue-600 font-bold">Please copy-paste this exactly!</p>
-      </div>
-    );
-  }
+  );
 }
