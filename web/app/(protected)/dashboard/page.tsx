@@ -99,8 +99,7 @@ export default async function DashboardPage() {
              <Link key={course.id} href={`/mentors?subject=${course.slug}`} className="relative h-32 md:h-40 rounded-2xl overflow-hidden group block shadow-sm border border-zinc-100 bg-white">
                 <div className="absolute inset-0 bg-zinc-50 group-hover:bg-zinc-100 transition-colors duration-300">
                    <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                      <img src={`/${course.slug}.png`} alt={course.name} className="w-16 h-16 object-contain mb-2 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden') }} />
-                      <svg className="hidden w-12 h-12 text-blue-200 drop-shadow-sm mb-2 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+                      <img src={`/${course.slug}.png`} alt={course.name} className="w-16 h-16 object-contain mb-2 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
                       <span className="text-xs md:text-sm font-bold text-zinc-800 text-center leading-tight line-clamp-2">{course.name}</span>
                    </div>
                 </div>
