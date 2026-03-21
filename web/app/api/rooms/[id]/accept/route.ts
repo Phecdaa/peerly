@@ -64,13 +64,14 @@ export async function POST(
     .eq("id", roomId);
 
   // Phase 12: Silent notification to Host
-  service.from("notifications").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (service as any).from("notifications").insert({
     user_id: room.host_id,
     title: "Pesanan Diterima!",
     message: `Mentormu telah menyetujui jadwal. Segera lakukan pembayaran!`,
     type: "room_update",
     link_url: `/rooms/${room.id}`
-  }).then(({ error }) => { if (error) console.log("Notif error ignored:", error.message) });
+  }).then(({ error }: any) => { if (error) console.log("Notif error ignored:", error.message) });
 
   return NextResponse.json({ ok: true, status: "waiting_payment" });
 }

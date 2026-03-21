@@ -206,13 +206,14 @@ export async function POST(request: NextRequest) {
       .eq("id", room_id);
 
     // Phase 12: Silent notification to Mentor
-    service.from("notifications").insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (service as any).from("notifications").insert({
       user_id: room.mentor_id,
       title: "Pesanan Telah Dibayar!",
       message: `Hore! Pesanan telah dibayar lunas dan ruangan akan segera dibuka saat jam sesi dimulai.`,
       type: "room_update",
       link_url: `/rooms/${room_id}`
-    }).then(({ error }) => { if (error) console.log("Notif error ignored:", error.message) });
+    }).then(({ error }: any) => { if (error) console.log("Notif error ignored:", error.message) });
   }
 
   return NextResponse.json({

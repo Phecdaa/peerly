@@ -7,7 +7,8 @@ export async function GET() {
   const service = getSupabaseServiceClient();
 
   // 1. Cancel unaccepted rooms past their start time
-  const { error: err1 } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: err1 } = await (service as any)
     .from("rooms")
     .update({ status: "cancelled", updated_at: new Date().toISOString() })
     .eq("status", "pending_mentor_accept")
@@ -17,7 +18,8 @@ export async function GET() {
 
   // 2. Cancel accepted rooms that haven't been paid within 30 minutes
   const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-  const { error: err2 } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: err2 } = await (service as any)
     .from("rooms")
     .update({ status: "cancelled", updated_at: new Date().toISOString() })
     .eq("status", "waiting_payment")
@@ -28,7 +30,8 @@ export async function GET() {
   // 3. Auto-finish rooms that are past their scheduled end time + 15 mins
   const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   // using 'in' for status instead of multiple queries
-  const { error: err3 } = await service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: err3 } = await (service as any)
     .from("rooms")
     .update({ status: "finished", updated_at: new Date().toISOString() })
     .in("status", ["scheduled", "ongoing"])
