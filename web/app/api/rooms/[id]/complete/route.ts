@@ -23,12 +23,20 @@ export async function POST(
 
   const service = getSupabaseServiceClient();
 
-  type RoomRow = { id: number; mentor_id: string; scheduled_end: string; status: string };
+  type RoomRow = { 
+    id: number; 
+    mentor_id: string; 
+    host_id: string;
+    scheduled_end: string; 
+    status: string;
+    mentor_marked_completed: boolean;
+    host_marked_completed: boolean;
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: roomRaw, error: roomErr } = await (service as any)
     .from("rooms")
-    .select("id, mentor_id, scheduled_end, status")
+    .select("id, mentor_id, host_id, scheduled_end, status, mentor_marked_completed, host_marked_completed")
     .eq("id", roomId)
     .single();
 
@@ -38,16 +46,19 @@ export async function POST(
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  if (room.mentor_id !== user.id) {
+  const isMentor = room.mentor_id === user.id;
+  const isHost = room.host_id === user.id;
+
+  if (!isMentor && !isHost) {
     return NextResponse.json(
-      { error: "Only mentor can mark complete" },
+      { error: "Hanya mentor atau host yang dapat menandai selesai" },
       { status: 403 }
     );
   }
 
-  if (room.status !== "scheduled") {
+  if (room.status !== "scheduled" && room.status !== "ongoing") {
     return NextResponse.json(
-      { error: "Room harus dalam status scheduled" },
+      { error: "Room harus dalam status scheduled atau ongoing" },
       { status: 400 }
     );
   }
@@ -61,10 +72,21 @@ export async function POST(
     );
   }
 
+  const mentorMarked = room.mentor_marked_completed || isMentor;
+  const hostMarked = room.host_marked_completed || isHost;
+  const bothCompleted = mentorMarked && hostMarked;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (service as any).from("rooms")
-    .update({ status: "finished", updated_at: now.toISOString() })
+    .update({ 
+      status: bothCompleted ? "finished" : room.status, 
+      updated_at: now.toISOString(),
+      mentor_marked_completed: mentorMarked,
+      host_marked_completed: hostMarked
+    })
     .eq("id", roomId);
+
+  if (bothCompleted) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (service as any).from("bookings")
@@ -104,7 +126,8 @@ export async function POST(
       })
       .eq("room_id", roomId)
       .eq("status", "escrow");
+    }
   }
 
-  return NextResponse.json({ ok: true, status: "finished" });
+  return NextResponse.json({ ok: true, status: bothCompleted ? "finished" : room.status });
 }

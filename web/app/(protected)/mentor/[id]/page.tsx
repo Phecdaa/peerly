@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { CreateRoomForm } from "./CreateRoomForm";
+import { ReportButton } from "@/components/ReportButton";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -52,25 +53,44 @@ export default async function MentorDetailPage({ params }: Params) {
     has_room: availWithRoom.has(a.id),
   }));
 
-  const { data: mentorBookings } = await supabase
-    .from("bookings")
+  const { data: mentorRooms } = await supabase
+    .from("rooms")
     .select("id")
     .eq("mentor_id", id);
-  const mentorBookingIds = (mentorBookings ?? []).map((b) => b.id);
+  const roomIds = (mentorRooms ?? []).map((b) => b.id);
+  
   let average_rating: number | null = null;
   let review_count = 0;
-  if (mentorBookingIds.length > 0) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let reviewsList: any[] = [];
+  
+  if (roomIds.length > 0) {
     const { data: rev } = await supabase
       .from("reviews")
-      .select("rating")
-      .in("booking_id", mentorBookingIds);
-    const ratings = (rev ?? []).map((r) => r.rating);
+      .select("rating, comment, created_at, reviewer_id")
+      .in("room_id", roomIds)
+      .order("created_at", { ascending: false });
+      
+    reviewsList = rev ?? [];
+    const ratings = reviewsList.map((r) => r.rating);
     review_count = ratings.length;
     average_rating =
       ratings.length > 0
         ? ratings.reduce((a, b) => a + b, 0) / ratings.length
         : null;
   }
+
+  // Fetch profiles for the reviewers to get their names
+  const reviewerIds = [...new Set(reviewsList.map(r => r.reviewer_id))];
+  const { data: reviewersData } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", reviewerIds.length ? reviewerIds : ["00000000-0000-0000-0000-000000000000"]);
+    
+  const reviewerMap: Record<string, string> = {};
+  (reviewersData ?? []).forEach(p => {
+    reviewerMap[p.id] = p.full_name || "User";
+  });
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-10">
@@ -103,6 +123,9 @@ export default async function MentorDetailPage({ params }: Params) {
         <p className="mt-2 text-xs text-zinc-400">
           Mata kuliah: {courses.map((c: { name: string }) => c.name).join(", ")}
         </p>
+        <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-end">
+          <ReportButton targetType="mentor" targetId={id} />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 space-y-6">
@@ -118,6 +141,34 @@ export default async function MentorDetailPage({ params }: Params) {
             slots={slots}
           />
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white p-6 space-y-6">
+        <h2 className="text-sm font-semibold text-zinc-900">
+          Ulasan & Rating
+        </h2>
+        {reviewsList.length === 0 ? (
+          <p className="text-sm text-zinc-500">Belum ada ulasan untuk mentor ini.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviewsList.map((rev) => (
+              <div key={rev.id} className="border-b border-zinc-100 pb-4 last:border-0 last:pb-0">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm text-zinc-800">{reviewerMap[rev.reviewer_id] ?? "User"}</span>
+                    <span className="text-xs text-amber-500">{"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}</span>
+                  </div>
+                  <span className="text-xs text-zinc-400">
+                    {new Date(rev.created_at).toLocaleDateString("id-ID", { dateStyle: "medium" })}
+                  </span>
+                </div>
+                {rev.comment && (
+                  <p className="text-sm text-zinc-600 mt-1">{rev.comment}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

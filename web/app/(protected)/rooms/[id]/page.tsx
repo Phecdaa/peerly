@@ -5,6 +5,7 @@ import { RoomChat } from "./RoomChat";
 import { RoomActions } from "./RoomActions";
 import { InviteByEmailForm } from "./InviteByEmailForm";
 import { RoomTime } from "./RoomTime";
+import { ReportButton } from "@/components/ReportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,8 @@ export default async function RoomPage({ params }: RoomPageProps) {
       scheduled_start,
       scheduled_end,
       status,
+      mentor_marked_completed,
+      host_marked_completed,
       intended_participant_count,
       room_participants (
         id,
@@ -142,6 +145,17 @@ export default async function RoomPage({ params }: RoomPageProps) {
   ) as { has_paid: boolean; amount_to_pay: number } | undefined;
   const hasPaid = myParticipant?.has_paid ?? false;
 
+  let hasReviewed = false;
+  if (!isMentor && room.status === "finished") {
+    const { data: myReview } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("room_id", roomId)
+      .eq("reviewer_id", user.id)
+      .maybeSingle();
+    hasReviewed = !!myReview;
+  }
+
   const durationMin =
     (new Date(room.scheduled_end).getTime() -
       new Date(room.scheduled_start).getTime()) /
@@ -183,7 +197,9 @@ export default async function RoomPage({ params }: RoomPageProps) {
   const hasActions = 
     (role !== "mentor" && room.status === "waiting_payment" && !actualHasPaid && !isSessionEnded) ||
     (role === "mentor" && room.status === "pending_mentor_accept" && !isSessionEnded) ||
-    (role === "mentor" && room.status === "scheduled" && isSessionEnded);
+    ((role === "mentor" || role === "host") && ["scheduled", "ongoing"].includes(room.status) && isSessionEnded && 
+      !((role === "mentor" && room.mentor_marked_completed) || (role === "host" && room.host_marked_completed))) ||
+    (role !== "mentor" && room.status === "finished" && !hasReviewed);
 
   return (
     <div className="page space-y-6">
@@ -263,6 +279,9 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 amountPerPerson={amountPerPerson}
                 isSessionEnded={isSessionEnded}
                 paymentMode={room.payment_mode}
+                mentorMarkedCompleted={room.mentor_marked_completed}
+                hostMarkedCompleted={room.host_marked_completed}
+                hasReviewed={hasReviewed}
               />
             </section>
           )}
@@ -349,6 +368,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
               </div>
             </div>
           </section>
+
+          <div className="pt-2 text-center text-zinc-400">
+            <ReportButton targetType="room" targetId={String(roomId)} />
+          </div>
         </aside>
       </main>
     </div>

@@ -73,6 +73,8 @@ create table if not exists public.rooms (
   scheduled_end timestamptz not null,
   status text not null default 'pending_payment',
   cancel_reason text,
+  mentor_marked_completed boolean not null default false,
+  host_marked_completed boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint room_status_check
@@ -152,11 +154,13 @@ create unique index if not exists payments_idempotency_key_idx on public.payment
 -- REVIEWS
 create table if not exists public.reviews (
   id serial primary key,
-  booking_id int not null unique references public.bookings (id) on delete cascade,
+  room_id int not null references public.rooms (id) on delete cascade,
+  reviewer_id uuid not null references public.profiles (id) on delete cascade,
   rating int not null,
   comment text,
   created_at timestamptz not null default now(),
-  constraint rating_range_check check (rating between 1 and 5)
+  constraint rating_range_check check (rating between 1 and 5),
+  unique (room_id, reviewer_id)
 );
 
 -- REPORTS
