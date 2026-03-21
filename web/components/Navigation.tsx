@@ -42,7 +42,7 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
   } 
   
   if (isMentor && mentorStatus === "approved") {
-    navItems.push({ label: "Jadwal", href: "/availability", Icon: CalendarIcon });
+    navItems.push({ label: "Jadwal", href: "/mentor/availability", Icon: CalendarIcon });
   }
 
   // Akun is always last
