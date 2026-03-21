@@ -39,7 +39,9 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
   // Specific Tabs
   if (role === "admin") {
     navItems.push({ label: "Admin", href: "/admin", Icon: ShieldCheckIcon });
-  } else if (isMentor && mentorStatus === "approved") {
+  } 
+  
+  if (isMentor && mentorStatus === "approved") {
     navItems.push({ label: "Jadwal", href: "/availability", Icon: CalendarIcon });
   }
 
@@ -55,11 +57,14 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
     <>
       {/* Desktop Top Navbar */}
       <nav className="hidden md:flex fixed top-0 left-0 right-0 h-16 bg-white border-b border-zinc-200 z-50 items-center justify-between px-6 lg:px-20">
-        <div className="flex items-center gap-8 h-full">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Peerly" className="h-8" onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling?.classList.remove("hidden") }} />
-            <span className="hidden font-bold text-2xl tracking-tighter text-blue-800">Peerly</span>
+        <div className="flex items-center w-full h-full">
+          {/* Brand/Logos */}
+          <Link href="/dashboard" className="flex items-center gap-2 mr-10">
+            <img src="/logo.png" alt="Peerly" className="h-8" />
+            <img src="/nama.png" alt="Peerly" className="h-5 object-contain" />
           </Link>
+          
+          {/* Tabs */}
           <div className="flex h-full">
             {navItems.map((item) => {
               const isActive = pathname?.startsWith(item.href);

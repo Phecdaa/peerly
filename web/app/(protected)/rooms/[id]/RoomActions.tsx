@@ -230,7 +230,7 @@ export function RoomActions({
                   onChange={(e) => setReviewComment(e.target.value)}
                   className="textarea w-full text-sm"
                   rows={2}
-                  placeholder="Sangat membantu, materinya jelas..."
+                  placeholder="Sangat membantu, penjelasan mata kuliahnya jelas..."
                 />
               </div>
               <div className="flex gap-2 justify-end">

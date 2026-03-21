@@ -8,6 +8,12 @@ export default async function MentorsPage({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const isAdmin = profile?.role === "admin";
+
   const { data: courses = [] } = await supabase
     .from("courses")
     .select("id, name, slug")
@@ -38,6 +44,10 @@ export default async function MentorsPage({
       if (!hasCourses) return false;
       const matchesSubject = m.courses.some((c: any) => c.slug === searchParams.subject);
       if (!matchesSubject) return false;
+    }
+
+    if (isAdmin) {
+      return true; // Admins can see all approved mentors regardless of setup
     }
 
     return hasCourses && hasAvailabilities;

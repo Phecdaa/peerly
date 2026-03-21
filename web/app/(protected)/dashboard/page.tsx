@@ -40,8 +40,7 @@ export default async function DashboardPage() {
       <header className="bg-blue-600 px-6 pt-10 pb-12 rounded-b-3xl text-white shadow-sm relative z-0">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Peerly Icon" className="w-8 h-8 drop-shadow-sm" />
-            <img src="/nama.png" alt="Peerly" className="h-5 drop-shadow-sm object-contain" />
+            {/* Logo removed - now in global top navbar */}
           </div>
           <div className="flex items-center gap-3">
              <Link href="/notifications" className="relative p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
@@ -53,7 +52,7 @@ export default async function DashboardPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold">Hi, {profile?.full_name ?? user.email?.split("@")[0]}</h1>
-          <p className="text-blue-100 mt-1">Mau belajar materi apa hari ini?</p>
+          <p className="text-blue-100 mt-1">Mau belajar mata kuliah apa hari ini?</p>
         </div>
       </header>
 
@@ -61,7 +60,7 @@ export default async function DashboardPage() {
       <div className="px-6 -mt-7 relative z-10 text-zinc-900">
         <form action="/mentors" method="GET" className="bg-white rounded-xl shadow-md border border-zinc-100 flex items-center px-4 py-3 gap-3">
           <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input type="text" name="q" placeholder="Cari materi atau mentor?" className="flex-1 bg-transparent text-sm outline-none w-full" />
+          <input type="text" name="q" placeholder="Cari mata kuliah atau mentor?" className="flex-1 bg-transparent text-sm outline-none w-full" />
         </form>
       </div>
 
@@ -91,9 +90,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Pilihan Mapel Grid */}
+      {/* Pilihan Matkul Grid */}
       <div className="px-6 mt-8">
-        <h3 className="text-zinc-900 font-bold mb-4 text-lg">Pilihan Mapel</h3>
+        <h3 className="text-zinc-900 font-bold mb-4 text-lg">Pilihan Mata Kuliah</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {(courses ?? []).map((course) => (
              <Link key={course.id} href={`/mentors?subject=${course.slug}`} className="relative h-32 md:h-40 rounded-2xl overflow-hidden group block shadow-sm border border-zinc-100 bg-white">
