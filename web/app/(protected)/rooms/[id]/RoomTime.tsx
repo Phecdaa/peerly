@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-export function RoomTime({ startTs, endTs }: { startTs: string; endTs: string }) {
+export function RoomTime({ startTs, endTs, shortDate = false }: { startTs: string; endTs?: string; shortDate?: boolean }) {
   const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
@@ -9,19 +9,21 @@ export function RoomTime({ startTs, endTs }: { startTs: string; endTs: string })
   }, []);
 
   if (!isClient) {
-    return <span>Memuat waktu...</span>;
+    return <span>...</span>;
+  }
+
+  const startStr = new Date(startTs).toLocaleString("id-ID", {
+    dateStyle: shortDate ? "medium" : "full",
+    timeStyle: "short",
+  });
+
+  if (!endTs) {
+    return <span>{startStr}</span>;
   }
 
   return (
     <span>
-      {new Date(startTs).toLocaleString("id-ID", {
-        dateStyle: "full",
-        timeStyle: "short",
-      })}{" "}
-      –{" "}
-      {new Date(endTs).toLocaleTimeString("id-ID", {
-        timeStyle: "short",
-      })}
+      {startStr} – {new Date(endTs).toLocaleTimeString("id-ID", { timeStyle: "short" })}
     </span>
   );
 }

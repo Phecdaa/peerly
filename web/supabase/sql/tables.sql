@@ -4,6 +4,13 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   full_name text,
+  email text,
+  phone_number text,
+  avatar_url text,
+  gender text check (gender in ('male', 'female', 'other')),
+  region text,
+  major text,
+  semester int,
   university text,
   role text not null default 'learner',
   is_mentor boolean not null default false,
