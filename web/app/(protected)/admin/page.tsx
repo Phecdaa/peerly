@@ -52,20 +52,23 @@ export default async function AdminPage() {
   );
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10">
-      <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900">
-          Admin – Pengajuan mentor
-        </h1>
-        <Link
-          href="/dashboard"
-          className="text-sm text-zinc-500 underline underline-offset-4 hover:text-zinc-700"
-        >
-          Dashboard
-        </Link>
+    <div className="bg-zinc-50 min-h-screen pb-24">
+      <header className="bg-blue-600 px-6 pt-10 pb-10 text-white relative z-10 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <img src="/logo-putih.png" alt="Peerly Icon" className="w-6 h-6 object-contain" />
+          <img src="/nama-putih.png" alt="Peerly" className="h-4 object-contain mt-1" />
+        </div>
+        <div className="flex items-center gap-3">
+           <Link href="/notifications" className="relative p-2 -mt-1 bg-white/10 rounded-full hover:bg-white/20 transition">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+           </Link>
+        </div>
       </header>
 
+      <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 -mt-6 relative z-20">
+
       <AdminMentorList applications={withCourses} />
+      </div>
     </div>
   );
 }

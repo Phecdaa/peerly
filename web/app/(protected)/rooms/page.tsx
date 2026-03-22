@@ -59,18 +59,20 @@ export default async function RoomsPage() {
     };
 
     return (
-      <div className="page">
-        <header className="bg-blue-600 px-6 pt-10 pb-6 rounded-b-3xl text-white shadow-sm relative z-10 flex items-center justify-between">
+      <div className="bg-zinc-50 min-h-screen pb-24">
+        <header className="bg-blue-600 px-6 pt-10 pb-10 text-white relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/logo-putih.png" alt="Peerly Icon" className="w-6 h-6 object-contain" />
+            <img src="/nama-putih.png" alt="Peerly" className="h-4 object-contain" />
+          </div>
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="p-1 -ml-1 hover:bg-white/20 rounded-full transition">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-            </Link>
-            <h1 className="text-xl font-bold tracking-wide">Room Saya</h1>
+             <Link href="/notifications" className="relative p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+             </Link>
+          </div>
+        </header>
 
-        </div>
-      </header>
-
-      <div className="px-4 py-6 space-y-8 pb-10">
+      <div className="px-4 -mt-6 relative z-20 space-y-8 pb-10">
         <RoomsTabs
         asParticipant={(asParticipantRooms as any[]) ?? []}
         asHost={(asHost as any[]) ?? []}
