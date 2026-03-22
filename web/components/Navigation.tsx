@@ -57,30 +57,30 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
     <>
       {/* Desktop Top Navbar */}
       <nav className="hidden md:flex fixed top-0 left-0 right-0 h-16 bg-white border-b border-zinc-200 z-50 items-center justify-between px-6 lg:px-20">
-        <div className="flex items-center w-full h-full">
+        <div className="flex items-center gap-2">
           {/* Brand/Logos */}
-          <Link href="/dashboard" className="flex items-center gap-2 mr-10">
-            <img src="/logo.png" alt="Peerly" className="h-8" />
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <img src="/logo.png" alt="Peerly" className="h-8 object-contain" />
             <img src="/nama.png" alt="Peerly" className="h-5 object-contain" />
           </Link>
+        </div>
           
-          {/* Tabs */}
-          <div className="flex h-full">
-            {navItems.map((item) => {
-              const isActive = pathname?.startsWith(item.href);
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`flex items-center px-4 text-sm font-medium transition-colors border-b-[3px] ${
-                    isActive ? "text-blue-600 border-blue-600" : "text-zinc-500 border-transparent hover:text-blue-600"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+        {/* Tabs */}
+        <div className="flex h-full items-center gap-2">
+          {navItems.map((item) => {
+            const isActive = pathname?.startsWith(item.href);
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex items-center px-4 h-full text-sm font-medium transition-colors border-b-[3px] ${
+                  isActive ? "text-blue-600 border-blue-600" : "text-zinc-500 border-transparent hover:text-blue-600"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       </nav>
 
