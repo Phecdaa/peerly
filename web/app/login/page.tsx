@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "register";
@@ -163,6 +164,14 @@ export default function LoginPage() {
             >
               {error}
             </div>
+          )}
+
+          {mode === "login" && (
+             <div className="flex justify-end">
+               <Link href="/login/forgot" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                  Lupa Password?
+               </Link>
+             </div>
           )}
 
           <button
