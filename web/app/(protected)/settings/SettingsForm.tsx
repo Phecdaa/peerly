@@ -63,9 +63,9 @@ export function SettingsForm({ user, profile }: any) {
     <div className="pb-8">
       {/* Background Banner - Biru Tema Peerly */}
       <div className="bg-blue-600 h-36 relative flex justify-between px-6 pt-10 text-white">
-        <div className="flex items-start gap-2">
-          <img src="/logo-putih.png" alt="Peerly Icon" className="w-8 h-8 object-contain" />
-          <img src="/nama-putih.png" alt="Peerly" className="h-[18px] object-contain my-auto" />
+        <div className="flex flex-row items-center gap-2 shrink-0">
+          <img src="/logo-putih.png" alt="Peerly Icon" className="w-8 h-8 object-contain shrink-0" />
+          <img src="/nama-putih.png" alt="Peerly" className="h-[18px] w-auto object-contain shrink-0" />
         </div>
         <div className="flex items-start gap-3">
            <Link href="/notifications" className="relative p-2 -mt-1 bg-white/10 rounded-full hover:bg-white/20 transition">
