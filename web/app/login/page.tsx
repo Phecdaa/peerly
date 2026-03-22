@@ -70,8 +70,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-100 px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-lg shadow-zinc-900/10">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <div className="flex justify-center items-center gap-2 mb-2 w-full">
+            <img src="/logo.png" alt="Peerly Icon" className="w-12 h-12 object-contain drop-shadow-sm" />
+            <img src="/nama.png" alt="Peerly" className="h-7 object-contain drop-shadow-sm mt-1" />
+          </div>
+          <h1 className="sr-only">
             Peerly
           </h1>
           <p className="mt-2 text-sm text-zinc-500">

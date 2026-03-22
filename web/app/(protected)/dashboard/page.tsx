@@ -40,8 +40,8 @@ export default async function DashboardPage() {
       <header className="bg-blue-600 px-6 pt-10 pb-12 rounded-b-3xl text-white shadow-sm relative z-0">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2 md:hidden">
-            <img src="/logo-putih.png" alt="Peerly Icon" className="w-6 h-6 object-contain" />
-            <img src="/nama-putih.png" alt="Peerly" className="h-4 object-contain" />
+            <img src="/logo-putih.png" alt="Peerly Icon" className="w-8 h-8 object-contain" />
+            <img src="/nama-putih.png" alt="Peerly" className="h-[18px] object-contain" />
           </div>
           <div className="flex items-center gap-3">
              <Link href="/notifications" className="relative p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
