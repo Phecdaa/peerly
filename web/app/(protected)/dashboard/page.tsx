@@ -37,13 +37,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="bg-zinc-50 min-h-screen md:pb-8 pb-20">
-      <header className="bg-blue-600 px-6 pt-10 pb-12 rounded-b-3xl text-white shadow-sm relative z-0">
-        <div className="flex justify-between items-center mb-6">
+      <header className="bg-blue-600 px-6 pt-10 pb-12 rounded-b-3xl text-white shadow-sm relative z-0 md:rounded-3xl md:mt-6 md:pb-16">
+        <div className="flex justify-between items-center mb-6 md:mb-0">
           <div className="flex items-center gap-3 md:hidden">
             <img src="/logo-putih.png" alt="Peerly Icon" className="w-10 h-10 object-contain" />
             <img src="/nama-putih.png" alt="Peerly" className="h-5 object-contain mb-[2px]" />
           </div>
-          <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-3 ml-auto md:hidden">
              <Link href="/notifications" className="relative p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 {/* Red dot for unread can be added here dynamically later */}
@@ -91,10 +91,12 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Pilihan Matkul Grid */}
-      <div className="px-6 mt-8">
-        <h3 className="text-zinc-900 font-bold mb-4 text-lg">Pilihan Mata Kuliah</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {/* Matkul Container */}
+      <div className="px-4 py-8 md:px-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-zinc-900 tracking-tight">Eksplorasi Mata Kuliah</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {(courses ?? []).map((course) => (
              <Link key={course.id} href={`/mentors?subject=${course.slug}`} className="rounded-2xl overflow-hidden group block shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-zinc-100 bg-white h-full">
                 <div className="bg-zinc-50 group-hover:bg-zinc-100 transition-colors duration-300 h-full">
