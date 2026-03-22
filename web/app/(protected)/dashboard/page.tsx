@@ -39,8 +39,9 @@ export default async function DashboardPage() {
     <div className="bg-zinc-50 min-h-screen md:pb-8 pb-20">
       <header className="bg-blue-600 px-6 pt-10 pb-12 rounded-b-3xl text-white shadow-sm relative z-0">
         <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            {/* Logo removed - now in global top navbar */}
+          <div className="flex items-center gap-2 md:hidden">
+            <img src="/logo-putih.png" alt="Peerly Icon" className="w-6 h-6 object-contain" />
+            <img src="/nama-putih.png" alt="Peerly" className="h-4 object-contain" />
           </div>
           <div className="flex items-center gap-3">
              <Link href="/notifications" className="relative p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
@@ -95,11 +96,11 @@ export default async function DashboardPage() {
         <h3 className="text-zinc-900 font-bold mb-4 text-lg">Pilihan Mata Kuliah</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {(courses ?? []).map((course) => (
-             <Link key={course.id} href={`/mentors?subject=${course.slug}`} className="relative h-32 md:h-40 rounded-2xl overflow-hidden group block shadow-sm border border-zinc-100 bg-white">
-                <div className="absolute inset-0 bg-zinc-50 group-hover:bg-zinc-100 transition-colors duration-300">
-                   <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                      <img src={`/${course.slug}.png`} alt={course.name} className="w-16 h-16 object-contain mb-2 drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
-                      <span className="text-xs md:text-sm font-bold text-zinc-800 text-center leading-tight line-clamp-2">{course.name}</span>
+             <Link key={course.id} href={`/mentors?subject=${course.slug}`} className="rounded-2xl overflow-hidden group block shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-zinc-100 bg-white h-full">
+                <div className="bg-zinc-50 group-hover:bg-zinc-100 transition-colors duration-300 h-full">
+                   <div className="flex flex-col items-center justify-start p-4 h-full gap-2">
+                      <img src={`/${course.slug}.png`} alt={course.name} className="w-14 h-14 object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
+                      <span className="text-[11px] md:text-xs font-bold text-zinc-800 text-center leading-snug">{course.name}</span>
                    </div>
                 </div>
              </Link>
