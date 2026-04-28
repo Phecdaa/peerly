@@ -49,8 +49,14 @@ export default async function DashboardPage() {
   const pendingInvites = (participations || [])
     .filter(p => {
       const r = p.rooms as any;
-      // If room is waiting payment and this user hasn't paid, it's a pending action
-      return r && r.status === "waiting_payment" && !p.has_paid;
+      if (!r || r.status !== "waiting_payment" || p.has_paid) return false;
+      
+      // If the room is 'host_pays_all', only the host needs to pay
+      if (r.payment_mode === "host_pays_all" && r.host_id !== user.id) {
+        return false;
+      }
+      
+      return true;
     });
 
   // Calculate Wallet (Total pending payments needed)
