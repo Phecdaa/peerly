@@ -15,14 +15,19 @@ export async function getSupabaseServerClient(): Promise<SupabaseClient> {
 
   return createServerClient(url, anonKey, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
+      getAll() {
+        return cookieStore.getAll();
       },
-      set() {
-        // Cookie writing happens in middleware / route handlers
-      },
-      remove() {
-        // Cookie removal happens in middleware / route handlers
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch (error) {
+          // The `set` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
       },
     },
   });

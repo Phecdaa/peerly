@@ -15,37 +15,40 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  try {
-    const supabase = createServerClient(url, anonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name, value, options) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name, options) {
-          response.cookies.set({
-            name,
-            value: "",
-            ...options,
-            maxAge: 0,
-          });
-        },
-      },
-    });
+  let supabaseResponse = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-    // Touch the session so middleware can refresh it if needed
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        
+        supabaseResponse = NextResponse.next({
+          request: {
+            headers: request.headers,
+          },
+        });
+        
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  try {
     await supabase.auth.getUser();
   } catch (error) {
     console.error("Supabase middleware error", error);
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {

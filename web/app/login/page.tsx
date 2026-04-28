@@ -60,7 +60,8 @@ export default function LoginPage() {
         }
       }
 
-      router.replace("/dashboard");
+      router.push("/dashboard");
+      router.refresh();
     } catch (err) {
       setError("Terjadi kesalahan. Coba lagi.");
     } finally {
