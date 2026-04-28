@@ -74,14 +74,14 @@ module.exports = {
         "md": "16px"
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
         "h2": ["var(--font-jakarta)", "sans-serif"],
         "h1": ["var(--font-jakarta)", "sans-serif"],
-        "body-lg": ["var(--font-inter)", "sans-serif"],
-        "label-sm": ["var(--font-inter)", "sans-serif"],
+        "body-lg": ["var(--font-jakarta)", "sans-serif"],
+        "label-sm": ["var(--font-jakarta)", "sans-serif"],
         "h3": ["var(--font-jakarta)", "sans-serif"],
-        "body-md": ["var(--font-inter)", "sans-serif"],
-        "label-md": ["var(--font-inter)", "sans-serif"]
+        "body-md": ["var(--font-jakarta)", "sans-serif"],
+        "label-md": ["var(--font-jakarta)", "sans-serif"]
       },
       fontSize: {
         "h2": ["32px", { "lineHeight": "1.25", "letterSpacing": "-0.01em", "fontWeight": "600" }],
