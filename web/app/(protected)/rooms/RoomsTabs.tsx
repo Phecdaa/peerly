@@ -218,6 +218,6 @@ export function RoomsTabs({
           })}
         </div>
       )}
-    </div>
+    </>
   );
 }
