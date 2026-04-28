@@ -242,7 +242,7 @@ export default function Home() {
               <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-primary-container via-surface-container-high to-surface-container-high z-0"></div>
               {/* Step 1 */}
               <div className="relative z-10 flex flex-col items-center text-center group">
-                <div className="w-24 h-24 rounded-2xl bg-white border-4 border-surface-container-low shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+                <div className="relative w-24 h-24 rounded-2xl bg-white border-4 border-surface-container-low shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
                   <span className="material-symbols-outlined text-[40px] text-primary" data-icon="add_business">add_business</span>
                   <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center border-2 border-white">1</div>
                 </div>
@@ -251,7 +251,7 @@ export default function Home() {
               </div>
               {/* Step 2 */}
               <div className="relative z-10 flex flex-col items-center text-center group">
-                <div className="w-24 h-24 rounded-2xl bg-white border-4 border-surface-container-low shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+                <div className="relative w-24 h-24 rounded-2xl bg-white border-4 border-surface-container-low shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
                   <span className="material-symbols-outlined text-[40px] text-primary" data-icon="person_add">person_add</span>
                   <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center border-2 border-white">2</div>
                 </div>
@@ -260,7 +260,7 @@ export default function Home() {
               </div>
               {/* Step 3 */}
               <div className="relative z-10 flex flex-col items-center text-center group">
-                <div className="w-24 h-24 rounded-2xl bg-white border-4 border-surface-container-low shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
+                <div className="relative w-24 h-24 rounded-2xl bg-white border-4 border-surface-container-low shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex items-center justify-center mb-6 group-hover:-translate-y-2 transition-transform duration-300">
                   <span className="material-symbols-outlined text-[40px] text-primary" data-icon="diversity_3">diversity_3</span>
                   <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center border-2 border-white">3</div>
                 </div>
