@@ -16,17 +16,14 @@ export function SettingsForm({ user, profile }: any) {
     full_name: profile.full_name || "",
     email: profile.email || user.email,
     phone_number: profile.phone_number || "",
-    gender: profile.gender || "",
-    region: profile.region || "",
-    major: profile.major || "",
-    semester: profile.semester || "",
+    bio: profile.bio || "",
     university: profile.university || "",
+    major: profile.major || "",
+    timezone: profile.timezone || "Asia/Jakarta",
   });
   
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const memberSinceStr = profile.created_at ? new Date(profile.created_at).toLocaleDateString("id-ID", { month: "long", year: "numeric", day: "2-digit" }) : "";
 
   async function handleSave() {
     setLoading(true);
@@ -59,108 +56,241 @@ export function SettingsForm({ user, profile }: any) {
      setLoading(false);
   }
 
+  async function removeAvatar() {
+    if (!avatarUrl) return;
+    setLoading(true);
+    await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+    setAvatarUrl(null);
+    setLoading(false);
+    router.refresh();
+  }
+
   return (
-    <div className="pb-8 md:px-6">
-      {/* Background Banner - Biru Tema Peerly */}
-      <div className="bg-blue-600 px-6 pt-12 pb-14 text-white relative flex items-center justify-between w-full md:rounded-3xl md:mt-6 md:pb-24 md:px-10">
-        <div className="flex items-center gap-3 md:hidden">
-          <img src="/logo-putih.png" alt="Peerly Icon" className="w-10 h-10 object-contain" />
-          <img src="/nama-putih.png" alt="Peerly" className="h-5 object-contain mb-[2px]" />
-        </div>
-        <div className="hidden md:block">
-          <h1 className="text-2xl font-bold tracking-tight">Pengaturan Akun</h1>
-          <p className="text-sm text-blue-100 opacity-90 mt-1">Sesuaikan profil dan datamu.</p>
-        </div>
-        <div className="flex items-center gap-3 ml-auto md:hidden">
-           <Link href="/notifications" className="relative p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-           </Link>
-        </div>
+    <div className="flex-1 w-full flex flex-col pt-4">
+      {/* Page Header */}
+      <div className="mb-xl">
+        <h1 className="font-h1 text-h1 text-on-surface mb-xs">Account Settings</h1>
+        <p className="font-body-md text-body-md text-on-surface-variant">Manage your personal details, academic profile, and preferences.</p>
       </div>
 
-      {/* Profile Section Overlapping */}
-      <div className="-mt-14 flex flex-col items-center px-4 relative z-10 w-full max-w-lg mx-auto md:-mt-20">
-        <div className="relative group">
-          <div 
-            className="w-28 h-28 rounded-full bg-slate-200 border-[5px] border-white shadow-md overflow-hidden bg-cover bg-center transition" 
-            style={{ backgroundImage: `url(${avatarUrl || "https://api.dicebear.com/7.x/initials/svg?seed="+encodeURIComponent(formData.full_name || user.email)})` }}
-          ></div>
-          <button 
-             onClick={() => fileInputRef.current?.click()}
-             className="absolute bottom-1 right-1 bg-blue-600 p-2 rounded-full shadow-md text-white hover:bg-blue-700 transition"
-          >
-             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </button>
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarUpload} />
-        </div>
-        
-        {memberSinceStr && <p className="mt-3 text-[11px] font-medium tracking-wide text-zinc-500 uppercase">Member Sejak {memberSinceStr}</p>}
-
-        {/* Card Identitas */}
-        <div className="bg-white w-full rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 p-5 mt-5 space-y-4">
-          <div className="flex justify-between items-end">
-             <div className="w-full relative group">
-               <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Nama</label>
-               <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="text-zinc-900 border-b-2 border-zinc-100 w-full pb-1.5 outline-none text-sm font-semibold focus:border-blue-500 bg-transparent transition-colors" />
-             </div>
-             <button onClick={handleSave} disabled={loading} className="text-blue-600 hover:text-blue-700 p-1 shrink-0 ml-3 mb-1" title="Simpan Perubahan">
-                {loading ? <span className="text-xs">...</span> : <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>}
-             </button>
-          </div>
-          
-          <div className="relative group">
-            <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Email</label>
-            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="text-zinc-900 border-b-2 border-zinc-100 w-full pb-1.5 outline-none text-sm focus:border-blue-500 bg-transparent transition-colors" />
-          </div>
-
-          <div className="relative group">
-            <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">No Telepon</label>
-            <input type="tel" value={formData.phone_number} onChange={e => setFormData({...formData, phone_number: e.target.value})} className="text-zinc-900 border-b-2 border-zinc-100 w-full pb-1.5 outline-none text-sm focus:border-blue-500 bg-transparent transition-colors" placeholder="Masukkan no telp..." />
-          </div>
-          
-          {/* Tambahan Info Pelajar */}
-          <div className="grid grid-cols-2 gap-4 pt-1">
-            <div className="relative group">
-              <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Kampus</label>
-              <input type="text" value={formData.university} onChange={e => setFormData({...formData, university: e.target.value})} className="text-zinc-900 border-b-2 border-zinc-100 w-full pb-1.5 outline-none text-sm focus:border-blue-500 bg-transparent transition-colors" placeholder="-" />
-            </div>
-            <div className="relative group">
-              <label className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Jurusan</label>
-              <input type="text" value={formData.major} onChange={e => setFormData({...formData, major: e.target.value})} className="text-zinc-900 border-b-2 border-zinc-100 w-full pb-1.5 outline-none text-sm focus:border-blue-500 bg-transparent transition-colors" placeholder="-" />
-            </div>
-          </div>
-        </div>
-        
-        {/* Menu List Bawah */}
-        <div className="bg-white w-full rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 mt-6 overflow-hidden">
-           {/* Link Mentor Area */}
-           <Link href={profile.mentor_status === "approved" ? `/mentor/availability` : "/apply"} className="flex items-center justify-between p-4 border-b border-blue-50 bg-blue-50/30 hover:bg-blue-50 transition group">
-              <span className="text-sm font-bold text-blue-700">
-                 {profile.mentor_status === "approved" ? "Kelola Jadwal Mentor" : (profile.is_mentor ? "Status Pengajuan Mentor" : "Daftar Jadi Mentor")}
-              </span>
-              <svg className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-           </Link>
-
-           <Link href="/dashboard" className="flex items-center justify-between p-4 border-b border-zinc-50 hover:bg-zinc-50 transition group">
-              <span className="text-sm font-medium text-zinc-700">Beranda Dashboard</span>
-              <svg className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-           </Link>
-           <div className="flex items-center justify-between p-4 border-b border-zinc-50 hover:bg-zinc-50 transition cursor-pointer group">
-              <span className="text-sm font-medium text-zinc-700">Atur Ulang Password</span>
-              <svg className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-           </div>
-           <div className="flex items-center justify-between p-4 border-b border-zinc-50 hover:bg-zinc-50 transition cursor-pointer group">
-              <span className="text-sm font-medium text-zinc-700">Kebijakan Privasi</span>
-              <svg className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-           </div>
-           <form action="/auth/sign-out" method="POST" className="flex items-center justify-between p-4 hover:bg-red-50 hover:text-red-700 text-zinc-700 transition cursor-pointer group">
-              <button type="submit" className="text-sm font-medium w-full text-left flex justify-between items-center">
-                 Keluar
-                 <svg className="w-4 h-4 text-red-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+      <div className="flex flex-col lg:flex-row gap-gutter items-start">
+        {/* Inner Sidebar / Secondary Nav */}
+        <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 z-10 bg-background pb-4 lg:pb-0">
+          <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
+            <a href="#personal-info" className="whitespace-nowrap px-4 py-3 rounded-lg bg-surface-variant text-primary font-label-md text-label-md flex items-center gap-3 border border-primary-container/20">
+              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+              Personal Info
+            </a>
+            <a href="#academic-info" className="whitespace-nowrap px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center gap-3 transition-colors">
+              <span className="material-symbols-outlined text-[20px]">school</span>
+              Academic Info
+            </a>
+            {profile.mentor_status === "approved" ? (
+              <Link href="/mentor/availability" className="whitespace-nowrap px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center gap-3 transition-colors">
+                <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+                Mentor Schedule
+              </Link>
+            ) : (
+              <Link href="/apply" className="whitespace-nowrap px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center gap-3 transition-colors">
+                <span className="material-symbols-outlined text-[20px]">campaign</span>
+                Become a Mentor
+              </Link>
+            )}
+            <form action="/auth/sign-out" method="POST" className="w-full">
+              <button type="submit" className="w-full whitespace-nowrap px-4 py-3 rounded-lg text-error hover:bg-error-container/20 font-label-md text-label-md flex items-center gap-3 transition-colors text-left">
+                <span className="material-symbols-outlined text-[20px]">logout</span>
+                Log Out
               </button>
-           </form>
-        </div>
+            </form>
+          </nav>
+        </aside>
 
+        {/* Settings Forms Area */}
+        <div className="flex-1 w-full max-w-3xl space-y-lg">
+          {/* Profile Picture Card */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-md lg:p-lg shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-center gap-lg">
+            <div className="relative group">
+              <div 
+                className="w-24 h-24 rounded-full overflow-hidden bg-surface-container-highest border-4 border-surface-container-lowest shadow-sm bg-cover bg-center"
+                style={{ backgroundImage: `url(${avatarUrl || "https://api.dicebear.com/7.x/initials/svg?seed="+encodeURIComponent(formData.full_name || user.email)})` }}
+              >
+              </div>
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-md hover:bg-primary-fixed-variant transition-colors border-2 border-surface-container-lowest"
+              >
+                <span className="material-symbols-outlined text-[16px]">edit</span>
+              </button>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+            </div>
+            <div className="text-center sm:text-left flex-1">
+              <h3 className="font-h3 text-h3 text-on-surface mb-xs">Profile Picture</h3>
+              <p className="font-body-md text-body-md text-on-surface-variant mb-md">A picture helps your peers recognize you in study sessions.</p>
+              <div className="flex gap-3 justify-center sm:justify-start">
+                <button onClick={() => fileInputRef.current?.click()} disabled={loading} className="px-4 py-2 bg-surface-container-low text-primary font-label-md text-label-md rounded-lg hover:bg-surface-container transition-colors disabled:opacity-50">Upload New</button>
+                <button onClick={removeAvatar} disabled={loading || !avatarUrl} className="px-4 py-2 text-error font-label-md text-label-md rounded-lg hover:bg-error-container/50 transition-colors disabled:opacity-50">Remove</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Personal Details Form */}
+          <div id="personal-info" className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden scroll-mt-24">
+            <div className="p-lg border-b border-outline-variant/30 bg-surface-bright/50">
+              <h2 className="font-h3 text-h3 text-on-surface">Personal Information</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-1">Update your basic profile details.</p>
+            </div>
+            <div className="p-lg space-y-md">
+              <div className="space-y-sm">
+                <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Full Name</label>
+                <input 
+                  type="text" 
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md" 
+                />
+              </div>
+
+              <div className="space-y-sm">
+                <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Email Address</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline">
+                    <span className="material-symbols-outlined text-[20px]">mail</span>
+                  </span>
+                  <input 
+                    type="email" 
+                    value={formData.email}
+                    disabled 
+                    className="w-full pl-11 pr-4 py-3 rounded-lg border border-outline-variant/50 bg-surface-container-low text-on-surface-variant cursor-not-allowed font-body-md text-body-md" 
+                  />
+                </div>
+                <p className="text-xs text-outline mt-1">Email cannot be changed.</p>
+              </div>
+
+              <div className="space-y-sm">
+                <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Phone Number</label>
+                <input 
+                  type="tel" 
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md" 
+                  placeholder="+62..."
+                />
+              </div>
+
+              <div className="space-y-sm">
+                <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Bio</label>
+                <textarea 
+                  value={formData.bio}
+                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md resize-none" 
+                  rows={4}
+                  placeholder="Write a short introduction for your peers..."
+                ></textarea>
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-xs text-outline">Write a short introduction for your peers.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Academic Details Form */}
+          <div id="academic-info" className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden scroll-mt-24">
+            <div className="p-lg border-b border-outline-variant/30 bg-surface-bright/50">
+              <h2 className="font-h3 text-h3 text-on-surface">Academic Information</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-1">Where do you study and what is your major?</p>
+            </div>
+            <div className="p-lg space-y-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div className="space-y-sm">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">University</label>
+                  <input 
+                    type="text" 
+                    value={formData.university}
+                    onChange={(e) => setFormData({...formData, university: e.target.value})}
+                    className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md" 
+                    placeholder="e.g. Universitas Indonesia"
+                  />
+                </div>
+                <div className="space-y-sm">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Major</label>
+                  <input 
+                    type="text" 
+                    value={formData.major}
+                    onChange={(e) => setFormData({...formData, major: e.target.value})}
+                    className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md" 
+                    placeholder="e.g. Computer Science"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Location / Timezone */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-lg">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-lg shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+              <div className="flex items-center gap-3 mb-md">
+                <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined">schedule</span>
+                </div>
+                <div>
+                  <h3 className="font-label-md text-label-md text-on-surface font-semibold">Timezone</h3>
+                  <p className="text-xs text-on-surface-variant">For scheduling sessions</p>
+                </div>
+              </div>
+              <div className="relative">
+                <select 
+                  value={formData.timezone}
+                  onChange={(e) => setFormData({...formData, timezone: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md appearance-none"
+                >
+                  <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+                  <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
+                  <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+              </div>
+            </div>
+            
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-lg shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+              <div className="flex items-center gap-3 mb-md">
+                <div className="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary">
+                  <span className="material-symbols-outlined">translate</span>
+                </div>
+                <div>
+                  <h3 className="font-label-md text-label-md text-on-surface font-semibold">Language</h3>
+                  <p className="text-xs text-on-surface-variant">Interface preference</p>
+                </div>
+              </div>
+              <div className="relative">
+                <select className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none font-body-md text-body-md appearance-none">
+                  <option value="en">English (US)</option>
+                  <option value="id">Bahasa Indonesia</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="sticky bottom-4 z-20 p-md border border-outline-variant/30 bg-surface-bright/95 backdrop-blur-md flex justify-end gap-3 rounded-xl shadow-lg mt-8">
+            <button 
+              type="button" 
+              onClick={() => router.refresh()} 
+              className="px-6 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+            >
+              Discard Changes
+            </button>
+            <button 
+              type="button" 
+              onClick={handleSave} 
+              disabled={loading}
+              className="px-6 py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-fixed-variant shadow-sm transition-colors disabled:opacity-50"
+            >
+              {loading ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+
+        </div>
       </div>
     </div>
   );

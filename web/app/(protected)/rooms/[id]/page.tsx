@@ -74,7 +74,6 @@ export default async function RoomPage({ params }: RoomPageProps) {
     .single();
 
   if (!room || queryError) {
-    // If we reach here, it's either an RLS issue or genuinely not created.
     return (
       <div className="p-8 text-red-500">
         <h1 className="text-xl font-bold">Debug Error: Room not found</h1>
@@ -202,75 +201,104 @@ export default async function RoomPage({ params }: RoomPageProps) {
     (role !== "mentor" && room.status === "finished" && !hasReviewed);
 
   return (
-    <div className="page space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <Link
-            href="/rooms"
-            className="text-sm text-zinc-500 underline underline-offset-4 hover:text-zinc-700"
-          >
-            ← Room saya
-          </Link>
-          <h1 className="mt-1 text-xl font-semibold text-zinc-900">
-            {room.title || "Sesi belajar"}
-          </h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            <RoomTime startTs={room.scheduled_start} endTs={room.scheduled_end} />
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 font-medium text-zinc-700">
-            {STATUS_LABELS[room.status] ?? room.status}
-          </span>
-          <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 text-zinc-500">
-            {participantCount} peserta · {actualPaidCount} lunas
-          </span>
-        </div>
-      </header>
-
-      <main className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="space-y-4">
-          <section className="card space-y-3">
-            <h2 className="card-title">Chat (koordinasi sesi)</h2>
-            <RoomChat
-              roomId={roomId}
-              currentUserId={user.id}
-              profileMap={profileMap}
-              isReadOnly={isReadOnly}
-            />
-          </section>
-
-          <section className="card space-y-3">
-            <h2 className="card-title">Detail sesi</h2>
-            {room.description ? (
-              <p className="text-sm text-zinc-600 whitespace-pre-wrap">
-                {room.description}
-              </p>
-            ) : (
-              <p className="text-sm text-zinc-500">
-                Belum ada deskripsi. Gunakan chat untuk menyepakati fokus belajar.
-              </p>
-            )}
-            <p className="text-xs text-zinc-500">
-              Mode: {room.mode} · Pembayaran: {room.payment_mode}
+    <div className="flex flex-col xl:flex-row gap-lg items-start h-full">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col gap-lg w-full">
+        {/* Room Header / Status */}
+        <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex flex-col gap-md">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-tertiary-container text-on-tertiary-container font-label-sm text-label-sm px-3 py-1 rounded-full flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">event</span>
+                  {STATUS_LABELS[room.status] ?? room.status}
+                </span>
+              </div>
+              <h1 className="font-h2 text-h2 text-on-surface">{room.title || "Sesi Belajar"}</h1>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/rooms" className="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                Kembali
+              </Link>
+            </div>
+          </div>
+          
+          {room.description ? (
+            <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl whitespace-pre-wrap">
+              {room.description}
             </p>
-          </section>
+          ) : (
+            <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl italic">
+              Belum ada deskripsi spesifik. Gunakan chat untuk menyepakati fokus belajar.
+            </p>
+          )}
+          
+          <div className="flex flex-wrap gap-6 pt-4 border-t border-surface-variant">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined">schedule</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-label-sm text-on-surface-variant">WAKTU</p>
+                <p className="font-label-md text-label-md text-on-surface">
+                  <RoomTime startTs={room.scheduled_start} endTs={room.scheduled_end} />
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined">videocam</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-label-sm text-on-surface-variant">MODE</p>
+                <p className="font-label-md text-label-md text-on-surface capitalize">{room.mode}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined">group</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-label-sm text-on-surface-variant">KAPASITAS</p>
+                <p className="font-label-md text-label-md text-on-surface">{actualPaidCount} dari {intendedCount} Terisi</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <aside className="space-y-4">
-          {["online", "hybrid"].includes(room.mode) && ["scheduled", "ongoing"].includes(room.status) && (
-            <section className="card space-y-3 border-indigo-200 bg-indigo-50/50">
-              <h2 className="text-sm font-semibold text-indigo-900">Virtual Meeting (Live)</h2>
-              <a href="https://meet.google.com/peerly-demo-room" target="_blank" rel="noopener noreferrer" className="block text-indigo-700 underline text-sm break-all font-medium hover:text-indigo-800">
-                https://meet.google.com/peerly-demo-room
-              </a>
-              <p className="text-xs text-indigo-600">Gunakan link GMeet di atas ketika waktu sesi tiba.</p>
-            </section>
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+          {/* Payment Progress */}
+          <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-h3 text-h3 text-on-surface text-[20px]">Status Pembayaran</h3>
+              <span className="font-label-md text-label-md text-primary font-medium">Rp {Math.round(amountPerPerson).toLocaleString()}/org</span>
+            </div>
+            <div className="mt-2">
+              <div className="flex justify-between font-label-md text-label-md mb-2">
+                <span className="text-on-surface-variant">{actualPaidCount} dari {intendedCount} lunas</span>
+                <span className="text-on-surface font-semibold">{Math.round((actualPaidCount / intendedCount) * 100)}%</span>
+              </div>
+              <div className="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+                <div className="h-full bg-secondary rounded-full transition-all duration-500" style={{ width: `${Math.max(0, Math.min(100, (actualPaidCount / intendedCount) * 100))}%` }}></div>
+              </div>
+            </div>
+            <div className="bg-surface-container p-4 rounded-lg mt-2 flex items-start gap-3">
+              <span className="material-symbols-outlined text-primary mt-0.5">info</span>
+              <p className="font-body-md text-body-md text-[14px] text-on-surface-variant">
+                {room.payment_mode === "host_pays_all" 
+                  ? "Sesi menggunakan mode Host Pays All. Host menanggung seluruh biaya."
+                  : `Sesi akan terjadwal otomatis jika seluruh peserta telah membayar. ${intendedCount - actualPaidCount} pembayaran tertunda.`
+                }
+              </p>
+            </div>
+          </div>
 
-          {hasActions && (
-            <section className="card space-y-3">
-              <h2 className="card-title">Aksi</h2>
+          {/* Action Buttons */}
+          <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex flex-col gap-4 justify-center relative">
+            <h3 className="font-h3 text-h3 text-on-surface text-[20px] mb-2">Aksi Sesi</h3>
+            
+            {hasActions ? (
               <RoomActions
                 roomId={roomId}
                 role={role}
@@ -283,97 +311,105 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 hostMarkedCompleted={room.host_marked_completed}
                 hasReviewed={hasReviewed}
               />
-            </section>
-          )}
+            ) : (
+              <p className="text-sm text-on-surface-variant bg-surface p-3 rounded-lg text-center border border-outline-variant/20">Tidak ada aksi yang diperlukan saat ini.</p>
+            )}
 
-          <section className="card space-y-3">
-            <h2 className="card-title">Undang peserta</h2>
+            {["online", "hybrid"].includes(room.mode) && ["scheduled", "ongoing"].includes(room.status) && (
+              <a 
+                href="https://meet.google.com/peerly-demo-room" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-secondary text-on-secondary py-3 px-4 rounded-lg font-label-md text-label-md hover:bg-on-secondary-fixed-variant transition-colors flex items-center justify-center gap-2 w-full mt-2 shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[20px]">play_arrow</span>
+                Join Call (Live)
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Participants & Invites */}
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-lg">
+          {/* Participants */}
+          <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex flex-col min-h-[300px]">
+            <h3 className="font-h3 text-h3 text-on-surface text-[20px] mb-6">Partisipan</h3>
+            <div className="flex flex-col gap-0">
+              
+              {/* Mentor */}
+              <div className="flex items-center justify-between py-4 border-b border-surface-variant">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-primary bg-primary-container text-primary flex items-center justify-center font-bold text-lg">
+                    {(profileMap[room.mentor_id] ?? "M").charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-label-md text-label-md text-on-surface flex items-center gap-2">
+                      {profileMap[room.mentor_id] ?? "Mentor"}
+                      <span className="bg-primary-container/20 text-primary px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase">Mentor</span>
+                    </p>
+                  </div>
+                </div>
+                {room.mentor_marked_completed && <span className="bg-secondary/10 text-secondary px-3 py-1 rounded-full font-label-sm text-[11px] flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">check_circle</span> Selesai</span>}
+              </div>
+              
+              {/* Students */}
+              {(room.room_participants ?? []).map((p: any) => {
+                const isMe = p.user_id === user.id;
+                return (
+                  <div key={p.id} className="flex items-center justify-between py-4 border-b border-surface-variant last:border-0">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-label-md text-[18px]">
+                        {(profileMap[p.user_id] ?? "P").charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-label-md text-label-md text-on-surface flex items-center gap-2">
+                          {isMe ? "Kamu" : profileMap[p.user_id] ?? "Peserta"}
+                          {isMe && <span className="text-on-surface-variant text-[12px] font-normal">(You)</span>}
+                        </p>
+                        <p className="font-body-md text-[13px] text-on-surface-variant capitalize">{p.role}</p>
+                      </div>
+                    </div>
+                    {p.has_paid ? (
+                      <span className="bg-secondary/10 text-secondary px-3 py-1 rounded-full font-label-sm text-[11px] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">check_circle</span> Lunas
+                      </span>
+                    ) : (
+                      <span className="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-sm text-[11px] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">schedule</span> Belum
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Invite Section */}
+          <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex flex-col">
+            <h3 className="font-h3 text-h3 text-on-surface text-[20px] mb-4">Undang Teman</h3>
             <InviteByEmailForm
               roomId={roomId}
               currentCount={participantCount}
               maxCapacity={Math.min(maxCapacity, intendedCount)}
               canInvite={isHost || isMentor}
             />
-          </section>
-
-          <section className="card space-y-4">
-            <div>
-              <h2 className="card-title flex items-center justify-between">
-                <span>Peserta</span>
-                <span className="text-xs font-normal text-zinc-500">{actualPaidCount}/{intendedCount} Lunas</span>
-              </h2>
-              
-              {/* Progress Bar */}
-              <div className="mt-3 overflow-hidden rounded-full bg-zinc-100">
-                <div 
-                  className="h-2 rounded-full bg-emerald-500 transition-all duration-500" 
-                  style={{ width: `${Math.min(100, Math.max(0, (paidCount / intendedCount) * 100))}%` }}
-                />
-              </div>
+            
+            <div className="mt-auto pt-6 text-center">
+              <ReportButton targetType="room" targetId={String(roomId)} />
             </div>
-
-            <ul className="space-y-2 text-sm text-zinc-700 divide-y divide-zinc-100">
-              {(room.room_participants ?? []).map(
-                (p: {
-                  id: number;
-                  user_id: string;
-                  role: string;
-                  has_paid: boolean;
-                }) => (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between gap-3 pt-2 first:pt-0"
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-medium text-indigo-700">
-                        {(p.user_id === user.id ? "K" : profileMap[p.user_id]?.charAt(0) ?? "P")}
-                      </div>
-                      <span className="truncate font-medium">
-                        {p.user_id === user.id
-                          ? "Kamu"
-                          : profileMap[p.user_id] ?? "Peserta"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] shrink-0">
-                      <span className="rounded bg-zinc-100 px-1.5 py-0.5 uppercase tracking-wide text-zinc-500">
-                        {p.role}
-                      </span>
-                      {p.has_paid ? (
-                        <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700 font-medium">
-                          Lunas
-                        </span>
-                      ) : (
-                        <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-700 font-medium">
-                          Belum
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                )
-              )}
-            </ul>
-          </section>
-
-          <section className="card space-y-3">
-            <h2 className="card-title">Mentor</h2>
-            <div className="flex items-center gap-3 rounded-lg border border-zinc-100 p-3 bg-zinc-50/50 hover:bg-zinc-50 transition">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 font-medium text-white shadow-sm ring-2 ring-white">
-                {(profileMap[room.mentor_id] ?? "M").charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-zinc-900 truncate">
-                  {profileMap[room.mentor_id] ?? "Mentor"}
-                </p>
-                <p className="text-xs text-zinc-500">Mentor Room</p>
-              </div>
-            </div>
-          </section>
-
-          <div className="pt-2 text-center text-zinc-400">
-            <ReportButton targetType="room" targetId={String(roomId)} />
           </div>
-        </aside>
-      </main>
+        </div>
+      </div>
+
+      {/* Integrated Chat Panel */}
+      <div className="w-full xl:w-[380px] xl:sticky xl:top-24 h-[600px] xl:h-[calc(100vh-120px)] flex-shrink-0">
+        <RoomChat
+          roomId={roomId}
+          currentUserId={user.id}
+          profileMap={profileMap}
+          isReadOnly={isReadOnly}
+        />
+      </div>
     </div>
   );
 }

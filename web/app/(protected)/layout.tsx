@@ -24,11 +24,11 @@ export default async function ProtectedLayout({
     .single();
 
   return (
-    <div className="min-h-screen bg-zinc-50/50">
+    <div className="min-h-screen bg-background text-on-background font-body-md">
       <Navigation role={profile?.role} isMentor={profile?.is_mentor} mentorStatus={profile?.mentor_status} />
-      <div className="md:pt-16 pb-20 md:pb-8 mx-auto w-full max-w-md md:max-w-4xl lg:max-w-5xl md:px-6">
+      <main className="pt-[88px] lg:pl-64 pb-24 md:pb-8 px-4 md:px-8 max-w-[1280px] mx-auto">
         {children}
-      </div>
+      </main>
     </div>
   );
 }

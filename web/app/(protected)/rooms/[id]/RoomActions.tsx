@@ -110,7 +110,7 @@ export function RoomActions({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {role !== "mentor" &&
         status === "waiting_payment" &&
         !hasPaid &&
@@ -121,12 +121,12 @@ export function RoomActions({
                 type="button"
                 onClick={pay}
                 disabled={!!loading}
-                className="btn btn-primary w-full"
+                className="bg-primary text-on-primary py-3 px-4 rounded-lg font-label-md text-label-md hover:bg-primary-fixed-variant transition-colors w-full shadow-sm"
               >
-                {loading === "pay" ? "Memproses..." : `Bayar Rp ${amountPerPerson.toLocaleString()}`}
+                {loading === "pay" ? "Memproses..." : `Bayar Rp ${Math.round(amountPerPerson).toLocaleString()}`}
               </button>
             ) : (
-              <div className="rounded-lg bg-orange-50 border border-orange-100 p-3 text-sm text-orange-800 text-center">
+              <div className="rounded-lg bg-surface-container-high border border-outline-variant/20 p-3 text-sm text-on-surface-variant text-center">
                 Menunggu Host menyelesaikan pembayaran
               </div>
             )}
@@ -136,14 +136,14 @@ export function RoomActions({
       {role === "mentor" &&
         status === "pending_mentor_accept" &&
         !isSessionEnded && (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <button
               type="button"
               onClick={accept}
               disabled={!!loading}
-              className="btn btn-success w-full"
+              className="bg-secondary text-on-secondary py-3 px-4 rounded-lg font-label-md text-label-md hover:bg-on-secondary-fixed-variant transition-colors w-full shadow-sm"
             >
-              {loading === "accept" ? "Memproses..." : "Terima room (mulai pembayaran)"}
+              {loading === "accept" ? "Memproses..." : "Terima Sesi"}
             </button>
             <div className="flex gap-2">
               <input
@@ -151,13 +151,13 @@ export function RoomActions({
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Alasan tolak (opsional)"
-                className="input flex-1 py-2 text-sm"
+                className="flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-sm focus:border-error focus:ring-1 focus:ring-error outline-none"
               />
               <button
                 type="button"
                 onClick={reject}
                 disabled={!!loading}
-                className="btn btn-danger"
+                className="bg-error text-on-error px-4 py-2 rounded-lg font-label-md hover:bg-error-container hover:text-on-error-container transition-colors"
               >
                 {loading === "reject" ? "..." : "Tolak"}
               </button>
@@ -175,18 +175,18 @@ export function RoomActions({
                 type="button"
                 onClick={complete}
                 disabled={!!loading}
-                className="btn btn-primary w-full"
+                className="bg-primary text-on-primary py-3 px-4 rounded-lg font-label-md text-label-md hover:bg-primary-fixed-variant transition-colors w-full shadow-sm"
               >
                 {loading === "complete" ? "Memproses..." : "Tandai Selesai"}
               </button>
             ) : (
-              <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-sm text-emerald-800 text-center">
+              <div className="rounded-lg bg-surface-container-high border border-outline-variant/20 p-3 text-sm text-on-surface-variant text-center">
                 Menunggu persetujuan {role === "mentor" ? "Host" : "Mentor"} untuk mengakhiri sesi.
               </div>
             )}
             {((role === "mentor" && hostMarkedCompleted && !mentorMarkedCompleted) || 
               (role === "host" && mentorMarkedCompleted && !hostMarkedCompleted)) && (
-              <p className="text-xs text-indigo-600 text-center mt-1">
+              <p className="text-xs text-primary text-center mt-1">
                 {role === "mentor" ? "Host" : "Mentor"} sudah menunggu persetujuanmu.
               </p>
             )}
@@ -199,23 +199,24 @@ export function RoomActions({
           {!showReviewForm ? (
             <button
               onClick={() => setShowReviewForm(true)}
-              className="btn border border-zinc-200 bg-white text-zinc-800 w-full hover:bg-zinc-50"
+              className="w-full bg-surface-container text-on-surface py-3 px-4 rounded-lg font-label-md text-label-md border border-outline-variant/50 hover:bg-surface-variant transition-colors flex items-center justify-center gap-2"
             >
-              ⭐ Berikan Ulasan Mentor
+              <span className="material-symbols-outlined text-[18px]">star</span>
+              Berikan Ulasan Mentor
             </button>
           ) : (
-            <form onSubmit={submitReview} className="space-y-3 rounded-lg border border-zinc-200 p-4 bg-zinc-50">
-              <h3 className="text-sm font-semibold">Tulis Ulasan</h3>
+            <form onSubmit={submitReview} className="space-y-3 rounded-lg border border-outline-variant/30 p-4 bg-surface-container-lowest shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+              <h3 className="text-sm font-semibold text-on-surface">Tulis Ulasan</h3>
               <div>
-                <label className="block text-xs font-medium text-zinc-600 mb-1">Rating (1-5)</label>
+                <label className="block text-xs font-medium text-on-surface-variant mb-1">Rating (1-5)</label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setRating(r)}
-                      className={`h-8 w-8 rounded-full text-sm font-medium ${
-                        rating >= r ? "bg-amber-400 text-amber-900" : "bg-zinc-200 text-zinc-500"
+                      className={`h-8 w-8 rounded-full text-sm font-medium transition-colors ${
+                        rating >= r ? "bg-amber-400 text-amber-900" : "bg-surface-container text-outline"
                       }`}
                     >
                       {r}
@@ -224,27 +225,27 @@ export function RoomActions({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-zinc-600 mb-1">Komentar (Opsional)</label>
+                <label className="block text-xs font-medium text-on-surface-variant mb-1">Komentar (Opsional)</label>
                 <textarea
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  className="textarea w-full text-sm"
+                  className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
                   rows={2}
                   placeholder="Sangat membantu, penjelasan mata kuliahnya jelas..."
                 />
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex gap-2 justify-end mt-2">
                 <button
                   type="button"
                   onClick={() => setShowReviewForm(false)}
-                  className="btn bg-zinc-200 text-zinc-700 py-1.5 px-3 text-xs"
+                  className="px-4 py-2 rounded-lg text-on-surface-variant font-label-md hover:bg-surface-container transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={!!loading}
-                  className="btn btn-primary py-1.5 px-3 text-xs"
+                  className="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md hover:bg-primary-fixed-variant transition-colors"
                 >
                   {loading === "review" ? "Mengirim..." : "Kirim Ulasan"}
                 </button>

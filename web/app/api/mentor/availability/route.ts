@@ -74,3 +74,33 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ created: data });
 }
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+
+  const { error } = await supabase
+    .from("availabilities")
+    .delete()
+    .eq("id", id)
+    .eq("mentor_id", user.id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

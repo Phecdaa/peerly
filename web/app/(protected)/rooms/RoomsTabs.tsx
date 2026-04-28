@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { RoomTime } from "./[id]/RoomTime";
 
@@ -10,103 +10,214 @@ type RoomSummary = {
   status: string;
   scheduled_start: string;
   scheduled_end: string;
-};
-
-const statusLabel: Record<string, string> = {
-  pending_mentor_accept: "Menunggu mentor menerima",
-  waiting_payment: "Menunggu pembayaran",
-  scheduled: "Terjadwal",
-  ongoing: "Berlangsung",
-  finished: "Selesai",
-  cancelled: "Dibatalkan",
+  mode: string;
+  mentor_id: string;
+  host_id: string;
+  room_participants: { user_id: string }[];
 };
 
 export function RoomsTabs({
-  asParticipant,
-  asHost,
-  asMentor,
-  isMentorRole
+  allRooms,
+  profileMap,
+  currentUserId,
 }: {
-  asParticipant: RoomSummary[];
-  asHost: RoomSummary[];
-  asMentor: RoomSummary[];
-  isMentorRole: boolean;
+  allRooms: RoomSummary[];
+  profileMap: Record<string, any>;
+  currentUserId: string;
 }) {
-  const [activeTab, setActiveTab] = useState<"learner" | "host" | "mentor">("learner");
+  const [filter, setFilter] = useState<"all" | "active" | "scheduled" | "finished" | "cancelled">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const renderList = (rooms: RoomSummary[], emptyMessage: string, iconBg: string, iconColor: string) => {
-    if (!rooms || rooms.length === 0) {
-      return (
-        <div className="bg-white p-8 rounded-2xl border border-zinc-100 shadow-sm text-center">
-           <svg className="w-12 h-12 text-zinc-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
-           <p className="text-zinc-500 text-sm">{emptyMessage}</p>
-        </div>
-      );
-    }
+  const filteredRooms = useMemo(() => {
+    return allRooms.filter((r) => {
+      // Apply Search
+      if (searchQuery && !r.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      // Apply Status Filter
+      if (filter === "active" && r.status !== "ongoing") return false;
+      if (filter === "scheduled" && !["scheduled", "waiting_payment", "pending_mentor_accept"].includes(r.status)) return false;
+      if (filter === "finished" && r.status !== "finished") return false;
+      if (filter === "cancelled" && r.status !== "cancelled") return false;
+      
+      return true;
+    });
+  }, [allRooms, filter, searchQuery]);
 
-    return (
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {rooms.map((r) => (
-          <li key={r.id}>
-            <Link href={`/rooms/${r.id}`} className="flex gap-3 bg-white p-3 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-zinc-100 hover:border-blue-200 transition">
-              <div className="w-24 h-28 bg-zinc-100 rounded-xl flex-shrink-0 overflow-hidden relative">
-                <div className={`absolute inset-0 flex items-center justify-center ${iconBg}`}>
-                   <svg className={`w-8 h-8 ${iconColor}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
-                </div>
-              </div>
-              <div className="flex flex-col flex-1 min-w-0 justify-center">
-                <p className="text-[10px] text-zinc-500 mb-1 font-medium"><RoomTime startTs={r.scheduled_start} shortDate /></p>
-                <p className="text-[10px] text-zinc-400 mb-1.5 truncate">ID Room: {String(r.id).split('-')[0].toUpperCase()}</p>
-                <h3 className="font-semibold text-zinc-900 text-sm leading-snug line-clamp-2 mb-2">{r.title || "Sesi belajar"}</h3>
-                <div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${['finished', 'ongoing'].includes(r.status) ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                    Status: {statusLabel[r.status] ?? r.status}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    );
-  };
+  function getTimeUntil(dateString: string) {
+    const diff = new Date(dateString).getTime() - new Date().getTime();
+    if (diff <= 0) return "Started";
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours > 24) return `Starts in ${Math.floor(hours / 24)} days`;
+    if (hours > 0) return `Starts in ${hours} hours`;
+    const mins = Math.floor(diff / (1000 * 60));
+    return `Starts in ${mins} mins`;
+  }
+
+  function getDuration(start: string, end: string) {
+    const mins = Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 60000);
+    const hrs = Math.floor(mins / 60);
+    return hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`;
+  }
 
   return (
-    <div className="px-4 py-4 pb-10">
-      <div className="flex mb-6 bg-white p-1 rounded-xl shadow-sm border border-zinc-100">
-        <button
-          onClick={() => setActiveTab("learner")}
-          className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-            activeTab === "learner" ? "bg-blue-600 text-white shadow-sm" : "text-zinc-500"
-          }`}
-        >
-          Learner
-        </button>
-        <button
-          onClick={() => setActiveTab("host")}
-          className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-            activeTab === "host" ? "bg-blue-600 text-white shadow-sm" : "text-zinc-500"
-          }`}
-        >
-          Host
-        </button>
-        {isMentorRole && (
-          <button
-            onClick={() => setActiveTab("mentor")}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-              activeTab === "mentor" ? "bg-blue-600 text-white shadow-sm" : "text-zinc-500"
-            }`}
-          >
-            Mentor
-          </button>
-        )}
+    <>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-lg gap-4 -mt-12 md:-mt-16 relative z-10 w-full">
+        {/* Invisible spacer to maintain layout balance with the header above */}
+        <div className="hidden md:block"></div>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input 
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-surface-container-highest border-none rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary focus:bg-surface transition-all" 
+              placeholder="Search rooms..." 
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-4">
-         {activeTab === "learner" && renderList(asParticipant, "Belum ada pesanan sebagai murid.", "bg-gradient-to-br from-blue-50 to-indigo-50", "text-blue-200")}
-         {activeTab === "host" && renderList(asHost, "Kamu belum membuat room apapun.", "bg-gradient-to-br from-slate-50 to-zinc-100", "text-zinc-300")}
-         {activeTab === "mentor" && renderList(asMentor, "Belum ada pesanan masuk untukmu.", "bg-gradient-to-br from-indigo-50 to-purple-50", "text-indigo-200")}
+      {/* Filters */}
+      <div className="flex overflow-x-auto pb-4 mb-lg gap-2 scrollbar-hide">
+        {(["all", "active", "scheduled", "finished", "cancelled"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`whitespace-nowrap px-4 py-1.5 rounded-full font-label-md text-label-md transition-colors ${
+              filter === f 
+                ? "bg-primary text-on-primary shadow-sm border-transparent" 
+                : "bg-surface-container-high text-on-surface-variant hover:bg-surface-variant border border-outline-variant"
+            } capitalize`}
+          >
+            {f === "all" ? "All Rooms" : f}
+          </button>
+        ))}
       </div>
+
+      {/* Room List Bento Grid */}
+      {filteredRooms.length === 0 ? (
+        <div className="py-12 flex flex-col items-center justify-center text-center bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+          <span className="material-symbols-outlined text-[48px] text-outline/50 mb-4">search_off</span>
+          <h3 className="font-h3 text-h3 text-on-surface mb-2">No rooms found</h3>
+          <p className="font-body-md text-on-surface-variant max-w-md">Try adjusting your search or filters to find what you're looking for.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-lg">
+          {filteredRooms.map((r) => {
+            const isMentor = currentUserId === r.mentor_id;
+            const targetProfile = isMentor ? profileMap[r.host_id] : profileMap[r.mentor_id];
+            
+            // Collect participant avatars
+            const participantIds = [r.host_id, r.mentor_id, ...(r.room_participants || []).map(p => p.user_id)];
+            const uniqueParticipants = Array.from(new Set(participantIds));
+            const displayParticipants = uniqueParticipants.slice(0, 3);
+            const extraCount = uniqueParticipants.length - 3;
+
+            return (
+              <div key={r.id} className={`bg-surface-container-lowest rounded-[16px] border border-outline-variant/30 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 p-md flex flex-col group relative overflow-hidden ${
+                r.status === 'cancelled' ? 'opacity-60 grayscale-[0.5]' : ''
+              } ${r.status === 'ongoing' ? 'hover:border-primary/50 border-primary/20' : 'hover:border-tertiary-container/30'}`}>
+                
+                {r.status === 'ongoing' && (
+                  <div className="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
+                )}
+
+                <div className="flex justify-between items-start mb-4">
+                  {r.status === 'ongoing' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-on-secondary font-label-sm text-[10px] uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                      Live Now
+                    </span>
+                  ) : r.status === 'finished' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-[10px] uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                      Finished
+                    </span>
+                  ) : r.status === 'cancelled' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-error/10 text-error font-label-sm text-[10px] uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-[12px]">cancel</span>
+                      Cancelled
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary text-on-tertiary font-label-sm text-[10px] uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-[12px]">schedule</span>
+                      Upcoming
+                    </span>
+                  )}
+                  
+                  <Link href={`/rooms/${r.id}`} className="text-outline hover:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                  </Link>
+                </div>
+
+                <h3 className="font-h3 text-[18px] text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                  {r.title || "Study Session"}
+                </h3>
+                <p className="font-body-md text-sm text-on-surface-variant mb-4 line-clamp-1 capitalize">
+                  {r.mode} Mode
+                </p>
+
+                <div className="flex items-center gap-3 mb-4 p-3 bg-surface-container rounded-lg">
+                  {targetProfile?.avatar_url ? (
+                    <img src={targetProfile.avatar_url} alt="Profile" className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">
+                      {(targetProfile?.full_name || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-label-md text-sm text-on-surface">{targetProfile?.full_name || "Unknown User"}</p>
+                    <p className="font-body-md text-xs text-on-surface-variant truncate w-40">
+                      {isMentor ? "Host" : "Mentor"} • {targetProfile?.major || "University Student"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-end mt-auto pt-4 border-t border-surface-variant">
+                  {['finished', 'cancelled'].includes(r.status) ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="font-label-sm text-on-surface-variant flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">history</span> 
+                        {new Date(r.scheduled_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                      <span className="font-body-md text-xs text-on-surface-variant">
+                        Duration: {getDuration(r.scheduled_start, r.scheduled_end)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      <span className="font-label-sm text-on-surface flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-outline">calendar_today</span> 
+                        <RoomTime startTs={r.scheduled_start} shortDate />
+                      </span>
+                      <span className="font-body-md text-xs text-on-surface-variant">
+                        {getTimeUntil(r.scheduled_start)}
+                      </span>
+                    </div>
+                  )}
+
+                  {r.status === 'ongoing' ? (
+                    <Link href={`/rooms/${r.id}`} className="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-label-md text-sm hover:bg-primary-container transition-colors">
+                      Join Call
+                    </Link>
+                  ) : r.status === 'finished' && !isMentor ? (
+                    <Link href={`/rooms/${r.id}`} className="text-primary font-label-md text-sm hover:underline flex items-center gap-1">
+                      Review <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </Link>
+                  ) : (
+                    <Link href={`/rooms/${r.id}`} className="border border-outline-variant text-on-surface px-4 py-1.5 rounded-lg font-label-md text-sm hover:bg-surface-variant transition-colors">
+                      Details
+                    </Link>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default async function SettingsPage() {
     .single();
 
   return (
-    <div className="min-h-screen bg-zinc-50/50">
+    <div className="flex-1 max-w-[1280px] mx-auto w-full">
       <SettingsForm user={user} profile={profile || {}} />
     </div>
   );

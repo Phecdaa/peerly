@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export function NotificationList({ initialNotifications }: { initialNotifications: any[] }) {
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [filter, setFilter] = useState("All");
   const router = useRouter();
 
   const [supabase] = useState(() => createBrowserClient(
@@ -25,44 +25,153 @@ export function NotificationList({ initialNotifications }: { initialNotification
     }
   }
 
+  async function markAllAsRead() {
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
+    if (unreadIds.length === 0) return;
+    
+    const updated = notifications.map(n => ({ ...n, is_read: true }));
+    setNotifications(updated);
+    
+    await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
+  }
+
+  const filteredNotifications = useMemo(() => {
+    if (filter === "All") return notifications;
+    if (filter === "Rooms") return notifications.filter(n => n.type === "room_update");
+    if (filter === "Payments") return notifications.filter(n => n.type === "payment");
+    if (filter === "System") return notifications.filter(n => n.type === "system" || n.type === "promo");
+    return notifications;
+  }, [notifications, filter]);
+
   if (notifications.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-2xl border border-zinc-100 shadow-sm text-center">
-         <div className="w-20 h-20 bg-blue-50 text-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-           <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-         </div>
-         <h3 className="text-zinc-900 font-bold text-sm mb-1">Belum ada notifikasi</h3>
-         <p className="text-zinc-500 text-xs">Semua pemberitahuan update pesanan dan promo akan masuk ke sini.</p>
+      <div className="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30 shadow-sm text-center max-w-xl mx-auto">
+        <div className="w-20 h-20 bg-surface-container text-on-surface-variant rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="material-symbols-outlined text-[40px]">notifications_off</span>
+        </div>
+        <h3 className="font-h3 text-h3 text-on-surface mb-2">No notifications yet</h3>
+        <p className="font-body-md text-on-surface-variant">We'll let you know when there's an update on your study sessions or account.</p>
       </div>
     );
   }
 
+  const filters = ["All", "Rooms", "Payments", "System"];
+
   return (
-    <ul className="space-y-3">
-      {notifications.map((n) => (
-        <li key={n.id}>
-           <div 
-             onClick={() => markAsRead(n.id, n.link_url)}
-             className={`flex gap-4 p-4 rounded-2xl border cursor-pointer transition ${n.is_read ? 'bg-white border-zinc-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] opacity-70' : 'bg-blue-50 border-blue-100 shadow-[0_2px_8px_rgba(59,130,246,0.08)]'} relative overflow-hidden`}
-           >
-             {!n.is_read && <div className="absolute top-0 bottom-0 left-0 w-1 bg-blue-500"></div>}
-             <div className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center ${n.type === 'promo' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
-                {n.type === 'promo' ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                )}
-             </div>
-             <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start mb-1">
-                  <h3 className={`font-bold text-sm truncate pr-2 ${n.is_read ? 'text-zinc-700' : 'text-zinc-900'}`}>{n.title}</h3>
-                  <span className="text-[10px] text-zinc-400 whitespace-nowrap">{new Date(n.created_at).toLocaleDateString("id-ID", { month: "short", day: "numeric" })}</span>
+    <>
+      <div className="flex justify-end mb-4 -mt-16 relative z-10">
+        <button 
+          onClick={markAllAsRead}
+          className="flex items-center gap-2 px-4 py-2 text-primary hover:bg-primary-container/10 rounded-lg transition-colors font-label-md text-label-md border border-primary/20 w-fit bg-surface-container-lowest"
+        >
+          <span className="material-symbols-outlined text-[20px]">done_all</span>
+          Mark all as read
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 mb-lg overflow-x-auto pb-2 scrollbar-hide">
+        {filters.map(f => (
+          <button 
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-5 py-2 rounded-full font-label-md text-label-md whitespace-nowrap transition-colors ${
+              filter === f 
+                ? "bg-primary text-on-primary shadow-sm" 
+                : "bg-surface-container-lowest text-on-surface-variant border border-outline-variant hover:bg-surface-container-low"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Notification Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+        {filteredNotifications.map((n) => {
+          const isRoom = n.type === "room_update";
+          const isPayment = n.type === "payment";
+          
+          let colorConfig = {
+            borderHover: "hover:shadow-[0_8px_30px_rgba(0,0,0,0.05)] border-outline-variant/30",
+            barColor: "",
+            dotColor: "",
+            iconBg: "bg-surface-container",
+            iconText: "text-on-surface-variant",
+            iconName: "notifications",
+            labelColor: "text-on-surface-variant",
+            labelTitle: "System Alert"
+          };
+
+          if (isRoom) {
+            colorConfig = {
+              borderHover: "border-primary/20 hover:shadow-[0_8px_30px_rgba(0,88,190,0.1)]",
+              barColor: "bg-primary",
+              dotColor: "bg-primary shadow-[0_0_8px_rgba(0,88,190,0.5)]",
+              iconBg: "bg-primary-container/20",
+              iconText: "text-primary",
+              iconName: "group_add",
+              labelColor: "text-primary",
+              labelTitle: "Room Update"
+            };
+          } else if (isPayment) {
+            colorConfig = {
+              borderHover: "border-secondary/20 hover:shadow-[0_8px_30px_rgba(0,108,73,0.1)]",
+              barColor: "bg-secondary",
+              dotColor: "bg-secondary shadow-[0_0_8px_rgba(0,108,73,0.5)]",
+              iconBg: "bg-secondary-container/30",
+              iconText: "text-secondary",
+              iconName: "account_balance_wallet",
+              labelColor: "text-secondary",
+              labelTitle: "Payment"
+            };
+          }
+
+          return (
+            <div 
+              key={n.id}
+              onClick={() => markAsRead(n.id, n.link_url)}
+              className={`bg-surface-container-lowest p-5 rounded-xl border shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all relative overflow-hidden group cursor-pointer ${colorConfig.borderHover} ${n.is_read ? 'opacity-80 hover:opacity-100' : ''}`}
+            >
+              {!n.is_read && <div className={`absolute left-0 top-0 bottom-0 w-1 ${colorConfig.barColor}`}></div>}
+              {!n.is_read && <div className={`absolute top-5 right-5 w-2.5 h-2.5 rounded-full ${colorConfig.dotColor}`}></div>}
+              
+              <div className="flex gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${colorConfig.iconBg} ${colorConfig.iconText}`}>
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{colorConfig.iconName}</span>
                 </div>
-                <p className="text-xs text-zinc-600 leading-snug line-clamp-2">{n.message}</p>
-             </div>
-           </div>
-        </li>
-      ))}
-    </ul>
+                
+                <div className="flex-1 pr-6">
+                  <p className={`font-label-sm text-label-sm mb-1 uppercase tracking-wider ${colorConfig.labelColor}`}>{colorConfig.labelTitle}</p>
+                  <h3 className="font-h3 text-body-lg font-semibold text-on-background mb-1">{n.title}</h3>
+                  <p className="font-body-md text-label-md text-on-surface-variant mb-4 line-clamp-2">{n.message}</p>
+                  
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="font-label-sm text-label-sm text-outline flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">schedule</span> 
+                      {new Date(n.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    
+                    {n.link_url && (
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="px-4 py-1.5 bg-surface-container-high text-on-surface rounded-lg font-label-sm text-label-sm hover:bg-surface-variant transition-colors border border-outline-variant/50">
+                          View Details
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredNotifications.length === 0 && filter !== "All" && (
+        <div className="py-12 text-center text-on-surface-variant">
+          <p>No notifications found for this category.</p>
+        </div>
+      )}
+    </>
   );
 }
