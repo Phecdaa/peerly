@@ -64,10 +64,6 @@ export function MentorTabs({ profile, courses, average_rating, review_count, abo
               <span className="material-symbols-outlined text-[20px]">calendar_month</span>
               Book Session
             </button>
-            <button className="bg-surface text-primary border border-primary px-8 py-3 rounded-lg font-label-md text-label-md hover:bg-primary-container/10 transition-all flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px]">chat</span>
-              Message
-            </button>
           </div>
         </div>
       </section>

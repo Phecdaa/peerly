@@ -189,6 +189,18 @@ export function MentorList({
               <Link href={`/mentor/${m.id}`} className="w-full py-3 border-2 border-primary/20 text-primary hover:bg-primary hover:text-on-primary font-label-md rounded-lg transition-colors mt-auto text-center">View Profile</Link>
             </div>
           ))}
+
+          {/* Become a Mentor Card */}
+          <div className="bg-primary text-on-primary rounded-xl p-lg shadow-[0_4px_20px_rgba(33,112,228,0.2)] flex flex-col items-center justify-center text-center gap-4 hover:shadow-[0_8px_30px_rgba(33,112,228,0.3)] transition-all duration-300">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2">
+              <span className="material-symbols-outlined text-[32px]">school</span>
+            </div>
+            <h3 className="font-h2 text-[24px]">Become a Mentor</h3>
+            <p className="font-body-md opacity-90 mb-4">Earn money helping peers ace classes you've already mastered.</p>
+            <Link href="/apply" className="w-full bg-surface-container-lowest text-primary py-3 rounded-lg font-label-md font-semibold hover:bg-surface-container transition-colors">
+              Apply Now
+            </Link>
+          </div>
         </div>
       )}
 

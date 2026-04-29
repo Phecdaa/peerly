@@ -23,6 +23,7 @@ export function SettingsForm({ user, profile }: any) {
   });
   
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
+  const [activeSection, setActiveSection] = useState("personal-info");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSave() {
@@ -77,12 +78,12 @@ export function SettingsForm({ user, profile }: any) {
         {/* Inner Sidebar / Secondary Nav */}
         <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 z-10 bg-background pb-4 lg:pb-0">
           <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-            <a href="#personal-info" className="whitespace-nowrap px-4 py-3 rounded-lg bg-surface-variant text-primary font-label-md text-label-md flex items-center gap-3 border border-primary-container/20">
-              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+            <a href="#personal-info" onClick={() => setActiveSection("personal-info")} className={`whitespace-nowrap px-4 py-3 rounded-lg font-label-md text-label-md flex items-center gap-3 transition-colors ${activeSection === "personal-info" ? "bg-surface-variant text-primary border border-primary-container/20" : "text-on-surface-variant hover:bg-surface-container-low border border-transparent"}`}>
+              <span className="material-symbols-outlined text-[20px]" style={activeSection === "personal-info" ? { fontVariationSettings: "'FILL' 1" } : {}}>person</span>
               Personal Info
             </a>
-            <a href="#academic-info" className="whitespace-nowrap px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center gap-3 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">school</span>
+            <a href="#academic-info" onClick={() => setActiveSection("academic-info")} className={`whitespace-nowrap px-4 py-3 rounded-lg font-label-md text-label-md flex items-center gap-3 transition-colors ${activeSection === "academic-info" ? "bg-surface-variant text-primary border border-primary-container/20" : "text-on-surface-variant hover:bg-surface-container-low border border-transparent"}`}>
+              <span className="material-symbols-outlined text-[20px]" style={activeSection === "academic-info" ? { fontVariationSettings: "'FILL' 1" } : {}}>school</span>
               Academic Info
             </a>
             {profile.mentor_status === "approved" ? (
