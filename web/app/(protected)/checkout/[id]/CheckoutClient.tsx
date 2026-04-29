@@ -41,8 +41,8 @@ export function CheckoutClient({
       });
       
       if (res.ok) {
-        // Redirect back to room after successful payment
-        router.push(`/rooms/${roomId}`);
+        // Redirect to payment success page
+        router.push(`/checkout/${roomId}/success`);
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));

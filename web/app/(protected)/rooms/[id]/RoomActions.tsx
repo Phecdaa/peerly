@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Props = {
   roomId: number;
@@ -243,6 +244,17 @@ export function RoomActions({
             </form>
           )}
         </div>
+      )}
+
+      {/* Mentor: Session Notes Link */}
+      {role === "mentor" && status === "finished" && (
+        <Link
+          href={`/mentor/sessions/${roomId}/notes`}
+          className="w-full bg-tertiary-fixed text-on-tertiary-fixed py-3 px-4 rounded-lg font-label-md text-label-md hover:bg-tertiary-fixed-dim transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined text-[18px]">edit_document</span>
+          Write Session Notes
+        </Link>
       )}
     </div>
   );

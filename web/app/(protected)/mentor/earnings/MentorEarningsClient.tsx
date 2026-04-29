@@ -73,10 +73,10 @@ export function MentorEarningsClient() {
               <span className="material-symbols-outlined text-[32px] text-tertiary mb-4">edit_document</span>
               <h3 className="font-h3 text-h3 text-on-surface mb-2">Session Notes</h3>
               <p className="font-body-md text-body-md text-on-surface-variant mb-6">Review and submit notes for past mentoring sessions.</p>
-              <button className="font-label-md text-label-md text-tertiary hover:text-on-tertiary-fixed-variant flex items-center gap-1 group/btn">
+              <Link href="/rooms" className="font-label-md text-label-md text-tertiary hover:text-on-tertiary-fixed-variant flex items-center gap-1 group/btn">
                 Manage Notes
                 <span className="material-symbols-outlined text-[18px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-              </button>
+              </Link>
             </div>
           </div>
           

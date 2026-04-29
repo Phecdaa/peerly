@@ -1,8 +1,16 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
+import { WithdrawModal } from "./WithdrawModal";
+import { TopUpModal } from "./TopUpModal";
 
 export default function WalletPage() {
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showTopUp, setShowTopUp] = useState(false);
+
+  // In production these would come from server-side data fetching
+  const availableBalance = 0;
+
   return (
     <div className="flex-1 w-full flex flex-col pt-4">
       <header className="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -15,9 +23,8 @@ export default function WalletPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
-        {/* Balance Card (Bento Style) */}
+        {/* Balance Card */}
         <div className="bg-primary text-on-primary rounded-xl p-lg shadow-[0_8px_30px_rgba(0,88,190,0.15)] flex flex-col justify-between relative overflow-hidden lg:col-span-1 min-h-[240px]">
-          {/* Decorative background elements */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
           <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-tertiary/20 rounded-full blur-xl pointer-events-none"></div>
           
@@ -28,17 +35,23 @@ export default function WalletPage() {
                 account_balance_wallet
               </span>
             </div>
-            <div className="font-h1 text-h1 mb-2">Rp 0</div>
+            <div className="font-h1 text-h1 mb-2">Rp {availableBalance.toLocaleString("id-ID")}</div>
             <div className="font-label-sm text-label-sm text-on-primary/70 bg-white/10 inline-block px-3 py-1 rounded-full backdrop-blur-sm">
               No recent income
             </div>
           </div>
           
           <div className="flex gap-3 mt-8 relative z-10">
-            <button className="flex-1 bg-white text-primary font-label-md text-label-md py-2.5 rounded-lg hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2">
+            <button
+              onClick={() => setShowTopUp(true)}
+              className="flex-1 bg-white text-primary font-label-md text-label-md py-2.5 rounded-lg hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined text-sm">add</span> Top Up
             </button>
-            <button className="flex-1 bg-primary-container text-on-primary-container border border-white/20 font-label-md text-label-md py-2.5 rounded-lg hover:bg-primary-container/80 transition-colors flex items-center justify-center gap-2">
+            <button
+              onClick={() => setShowWithdraw(true)}
+              className="flex-1 bg-primary-container text-on-primary-container border border-white/20 font-label-md text-label-md py-2.5 rounded-lg hover:bg-primary-container/80 transition-colors flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined text-sm">arrow_downward</span> Withdraw
             </button>
           </div>
@@ -61,19 +74,6 @@ export default function WalletPage() {
               <span className="material-symbols-outlined text-4xl mb-2">inbox</span>
               <p className="font-body-md">No pending escrow funds</p>
             </div>
-            {/* Dummy content commented out, can be dynamically mapped later */}
-            {/* <div className="flex items-center justify-between p-4 rounded-lg bg-surface hover:bg-surface-container-low transition-colors border border-surface-variant w-full">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
-                  <span className="material-symbols-outlined text-sm">school</span>
-                </div>
-                <div className="text-left">
-                  <div className="font-label-md text-label-md text-on-surface">Advanced Calculus Review</div>
-                  <div className="font-label-sm text-label-sm text-on-surface-variant">with Dr. Alan Turing • Tomorrow, 2:00 PM</div>
-                </div>
-              </div>
-              <div className="font-h3 text-h3 text-on-surface">Rp 45.000</div>
-            </div> */}
           </div>
         </div>
       </div>
@@ -104,6 +104,20 @@ export default function WalletPage() {
           </table>
         </div>
       </div>
+
+      {/* Modals */}
+      {showWithdraw && (
+        <WithdrawModal
+          availableBalance={availableBalance}
+          onClose={() => setShowWithdraw(false)}
+        />
+      )}
+      {showTopUp && (
+        <TopUpModal
+          currentBalance={availableBalance}
+          onClose={() => setShowTopUp(false)}
+        />
+      )}
     </div>
   );
 }
