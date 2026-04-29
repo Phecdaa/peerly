@@ -1,5 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { AddCourseButton } from "@/app/admin/courses/AddCourseButton";
+import { DeleteCourseButton } from "@/app/admin/courses/DeleteCourseButton";
 
 export default async function AdminCoursesPage() {
   const supabase = await getSupabaseServerClient();
@@ -10,8 +11,7 @@ export default async function AdminCoursesPage() {
       id,
       name,
       slug,
-      mentor_courses(count),
-      rooms:bookings(count)
+      mentor_courses(count)
     `)
     .order("name", { ascending: true });
 
@@ -20,7 +20,6 @@ export default async function AdminCoursesPage() {
     name: c.name,
     slug: c.slug,
     mentorCount: c.mentor_courses?.[0]?.count || 0,
-    roomCount: c.rooms?.[0]?.count || 0,
   })) || [];
 
   return (
@@ -46,15 +45,13 @@ export default async function AdminCoursesPage() {
         </div>
       </div>
 
-      {/* Bento Grid / Cards */}
+      {/* Course Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
           <div key={course.id} className="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant shadow-[0px_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] hover:border-primary/20 transition-all duration-200 group relative flex flex-col justify-between">
             <div>
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <button className="p-2 bg-surface rounded-md text-on-surface-variant hover:text-error transition-colors border border-outline-variant">
-                  <span className="material-symbols-outlined text-sm">delete</span>
-                </button>
+                <DeleteCourseButton courseId={course.id} courseName={course.name} />
               </div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="px-2 py-1 bg-surface-container font-label-sm text-label-sm text-on-surface rounded-md">
@@ -71,10 +68,6 @@ export default async function AdminCoursesPage() {
               <div className="flex flex-col">
                 <span className="font-label-md text-label-md text-primary">{course.mentorCount}</span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant font-normal">Active Mentors</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="font-label-md text-label-md text-on-surface">{course.roomCount}</span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant font-normal">Past Sessions</span>
               </div>
             </div>
           </div>

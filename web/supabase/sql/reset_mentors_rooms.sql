@@ -39,6 +39,13 @@ WHERE id IN (
 -- Step 7: In case any profiles remain without auth.users link
 DELETE FROM public.profiles WHERE role != 'admin';
 
+-- Step 8: Reset admin password to 12345678
+UPDATE auth.users
+SET encrypted_password = crypt('12345678', gen_salt('bf'))
+WHERE id IN (
+  SELECT id FROM public.profiles WHERE role = 'admin'
+);
+
 -- Verification
 -- SELECT * FROM public.profiles;
 -- SELECT COUNT(*) FROM auth.users;

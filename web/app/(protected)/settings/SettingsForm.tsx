@@ -46,7 +46,9 @@ export function SettingsForm({ user, profile }: any) {
 
   async function handleSave() {
     setLoading(true);
-    const { error } = await supabase.from("profiles").update(formData).eq("id", user.id);
+    // Exclude fields that don't exist in DB or are read-only
+    const { email: _email, timezone: _tz, ...updateData } = formData;
+    const { error } = await supabase.from("profiles").update(updateData).eq("id", user.id);
     setLoading(false);
     if (error) alert("Error saving profile: " + error.message);
     else {
