@@ -36,18 +36,8 @@ export function RoomActions({
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
 
-  async function pay() {
-    setLoading("pay");
-    try {
-      const res = await fetch("/api/payments/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ room_id: roomId }),
-      });
-      if (res.ok) router.refresh();
-    } finally {
-      setLoading(null);
-    }
+  function pay() {
+    router.push(`/checkout/${roomId}`);
   }
 
   async function accept() {
