@@ -17,6 +17,7 @@ create table if not exists public.profiles (
   mentor_status text not null default 'none',
   hourly_rate numeric,
   bio text,
+  timezone text default 'Asia/Jakarta',
   created_at timestamptz not null default now(),
   constraint mentor_status_check
     check (mentor_status in ('none','pending','approved','rejected'))
@@ -80,6 +81,7 @@ create table if not exists public.rooms (
   scheduled_end timestamptz not null,
   status text not null default 'pending_payment',
   cancel_reason text,
+  intended_participant_count int default 1,
   mentor_marked_completed boolean not null default false,
   host_marked_completed boolean not null default false,
   created_at timestamptz not null default now(),
@@ -141,6 +143,7 @@ create table if not exists public.session_notes (
 create table if not exists public.payments (
   id serial primary key,
   booking_id int references public.bookings (id) on delete cascade,
+  room_id int references public.rooms (id) on delete set null,
   amount numeric not null,
   platform_fee numeric not null,
   mentor_amount numeric not null,

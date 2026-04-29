@@ -27,34 +27,47 @@ export default async function MentorsPage({
       university,
       bio,
       hourly_rate,
-      courses ( id, name, slug ),
+      mentor_courses (
+        courses (
+          id,
+          name,
+          slug
+        )
+      ),
       availabilities ( id )
     `)
     .eq("is_mentor", true)
     .eq("mentor_status", "approved");
 
-  let mentors = (mentorsUnfiltered ?? []).filter((m: any) => {
-    const hasCourses = m.courses && m.courses.length > 0;
-    const hasAvailabilities = m.availabilities && m.availabilities.length > 0;
+  const mentors = (mentorsUnfiltered ?? []).map((m: any) => {
+    // Extract courses from mentor_courses junction
+    const normalizedCourses = (m.mentor_courses ?? [])
+      .map((mc: any) => mc.courses)
+      .filter(Boolean);
     
+    return {
+      ...m,
+      courses: normalizedCourses
+    };
+  }).filter((m: any) => {
+    const hasCourses = m.courses && m.courses.length > 0;
+    
+    // We relax the requirement for availabilities so newly approved mentors appear.
+    // They just won't have slots to book on their profile page.
+    if (isAdmin) return true;
+    
+    // If filtering by subject
     if (searchParams.subject) {
       if (!hasCourses) return false;
       const matchesSubject = m.courses.some((c: any) => c.slug === searchParams.subject);
       if (!matchesSubject) return false;
     }
 
-    if (isAdmin) return true;
-    return hasCourses && hasAvailabilities;
+    return hasCourses; // Only require courses to be visible
   });
 
-  const withCourses = await Promise.all(
-    (mentors ?? []).map(async (m) => {
-      return { ...m, courses: m.courses ?? [] };
-    })
-  );
-
   const withRating = await Promise.all(
-    withCourses.map(async (m) => {
+    mentors.map(async (m) => {
       const { data: mentorRooms } = await supabase
         .from("rooms")
         .select("id")
