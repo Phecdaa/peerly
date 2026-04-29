@@ -102,9 +102,9 @@ export default function Home() {
                     <img alt="Student" className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMTahbGKicSUAEXbdl6lYzhKzdt_tDWJUJVDoL6DlLjOUC_p8vvpRaL3TU-hMaXlZ07SFIRusYzi1rjUW0XNDzAjidV0APNStxVEc1k11sSWe8W7PXnr_EKtbAYLk77Qk1oDxK2I_DiVLRbDGnm4RuuiFymCYZze39m1M7NyU9cv69VtNykzhfqbZi1C2ekpcpgq0wNzOZTx6MC_AhzKx_E_HhpIvpM895flGMxuqK2U7UYpA2ykV8q9VD33kCAWvv20q7ahUYsURS" />
                     <img alt="Student" className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGZp2jRMEem4moahywaJ_f8-aMEXLCXVyY931yWaHn8wUjXATwxJfED4BfAqhPrDsgDxuE6Hant6OTT8r4n8_nMzIHq3PJa8HaEeJPpYerRtdLimC_jid-VmX9zqWXNi2o5ag55wWtaeRBCXawZFU0he0Xr4AL1KbwrjPoZVMz5qHepYmgOor8Ou9IOprldL7v0UDYEQqSL5xUlmTLXN-10xMj0sOGK6_42o8N8yB_YTTNo0PdN93OTpZxfBlv9Ihz7QYwPepbuVeg" />
                   </div>
-                  <button className="bg-primary/10 text-primary hover:bg-primary hover:text-white font-label-md text-label-md px-4 py-2 rounded-lg transition-colors duration-200">
+                  <Link href="/login" className="bg-primary/10 text-primary hover:bg-primary hover:text-white font-label-md text-label-md px-4 py-2 rounded-lg transition-colors duration-200">
                     Join Room ($5)
-                  </button>
+                  </Link>
                 </div>
               </div>
               {/* Decorative floating element */}
@@ -279,9 +279,9 @@ export default function Home() {
                 <h2 className="font-h2 text-h2 text-on-surface mb-4">Learn from the Best</h2>
                 <p className="font-body-md text-body-md text-on-surface-variant">Need extra help? Hire a vetted peer mentor to guide your Room. They've recently passed the course with flying colors.</p>
               </div>
-              <button className="text-primary font-label-md text-label-md hover:underline flex items-center gap-1">
+              <Link href="/mentors" className="text-primary font-label-md text-label-md hover:underline flex items-center gap-1">
                 View All Mentors <span className="material-symbols-outlined text-[18px]" data-icon="arrow_right_alt">arrow_right_alt</span>
-              </button>
+              </Link>
             </div>
             <div className="grid md:grid-cols-4 gap-6">
               {/* Mentor Card 1 */}
@@ -299,9 +299,9 @@ export default function Home() {
                   <span className="bg-surface-container px-2 py-1 rounded font-label-sm text-[11px] text-on-surface-variant">Top Rated</span>
                   <span className="bg-surface-container px-2 py-1 rounded font-label-sm text-[11px] text-on-surface-variant">150+ Sessions</span>
                 </div>
-                <button className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary hover:text-primary font-label-md text-[13px] py-2 rounded-lg transition-colors">
+                <Link href="/login" className="w-full block text-center bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary hover:text-primary font-label-md text-[13px] py-2 rounded-lg transition-colors">
                   View Profile
-                </button>
+                </Link>
               </div>
               {/* Mentor Card 2 */}
               <div className="bg-white rounded-[16px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group">
@@ -318,9 +318,9 @@ export default function Home() {
                   <span className="bg-surface-container px-2 py-1 rounded font-label-sm text-[11px] text-on-surface-variant">Fast Responder</span>
                   <span className="bg-surface-container px-2 py-1 rounded font-label-sm text-[11px] text-on-surface-variant">89 Sessions</span>
                 </div>
-                <button className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary hover:text-primary font-label-md text-[13px] py-2 rounded-lg transition-colors">
+                <Link href="/login" className="w-full block text-center bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary hover:text-primary font-label-md text-[13px] py-2 rounded-lg transition-colors">
                   View Profile
-                </button>
+                </Link>
               </div>
               {/* Mentor Card 3 */}
               <div className="bg-white rounded-[16px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group">
@@ -337,9 +337,9 @@ export default function Home() {
                   <span className="bg-surface-container px-2 py-1 rounded font-label-sm text-[11px] text-on-surface-variant">Expert</span>
                   <span className="bg-surface-container px-2 py-1 rounded font-label-sm text-[11px] text-on-surface-variant">210 Sessions</span>
                 </div>
-                <button className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary hover:text-primary font-label-md text-[13px] py-2 rounded-lg transition-colors">
+                <Link href="/login" className="w-full block text-center bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary hover:text-primary font-label-md text-[13px] py-2 rounded-lg transition-colors">
                   View Profile
-                </button>
+                </Link>
               </div>
               {/* CTA Card */}
               <div className="bg-primary rounded-[16px] p-6 flex flex-col items-center justify-center text-center h-full min-h-[300px] shadow-[0_8px_30px_rgba(0,0,0,0.1)] relative overflow-hidden">
@@ -350,9 +350,9 @@ export default function Home() {
                   </div>
                   <h4 className="font-h3 text-[20px] text-white mb-2">Become a Mentor</h4>
                   <p className="font-body-sm text-[14px] text-white/80 mb-6">Earn money helping peers ace classes you've already mastered.</p>
-                  <button className="bg-white text-primary hover:bg-surface-container-lowest font-label-md text-[14px] px-6 py-2.5 rounded-xl transition-colors shadow-sm w-full">
+                  <Link href="/login" className="bg-white text-primary hover:bg-surface-container-lowest font-label-md text-[14px] px-6 py-2.5 rounded-xl transition-colors shadow-sm w-full block text-center">
                     Apply Now
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
