@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function Navigation({ role, isMentor, mentorStatus }: { role?: string, isMentor?: boolean, mentorStatus?: string }) {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // Dynamic Navigation Tabs based on Role
   const navItems = [
@@ -15,16 +16,29 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
     { label: "Wallet", href: "/wallet", icon: "payments" },
   ];
 
+  // Extra items for mobile "More" menu
+  const extraItems: { label: string; href: string; icon: string }[] = [];
+
   if (role === "admin") {
     navItems.push({ label: "Admin", href: "/admin", icon: "admin_panel_settings" });
+    extraItems.push({ label: "Admin", href: "/admin", icon: "admin_panel_settings" });
   } 
   
   if (isMentor && mentorStatus === "approved") {
     navItems.push({ label: "Jadwal", href: "/mentor/availability", icon: "calendar_month" });
     navItems.push({ label: "Earnings", href: "/mentor/earnings", icon: "monitoring" });
+    extraItems.push({ label: "Jadwal", href: "/mentor/availability", icon: "calendar_month" });
+    extraItems.push({ label: "Earnings", href: "/mentor/earnings", icon: "monitoring" });
   }
 
   navItems.push({ label: "Settings", href: "/settings", icon: "settings" });
+  extraItems.push({ label: "Notifications", href: "/notifications", icon: "notifications" });
+  extraItems.push({ label: "Settings", href: "/settings", icon: "settings" });
+
+  // Close the more menu when navigating
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     // Phase 12: Silent Cron trigger to enforce room timeouts (auto-cancel, auto-finish)
@@ -98,7 +112,47 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
             </Link>
           );
         })}
+        {/* More Button */}
+        <button 
+          onClick={() => setMoreOpen(!moreOpen)} 
+          className={`flex flex-col items-center justify-center rounded-xl px-4 py-1.5 transition-transform duration-150 ${moreOpen ? 'bg-blue-50 text-blue-600 scale-90' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          <span className="material-symbols-outlined" style={moreOpen ? {fontVariationSettings: "'FILL' 1"} : {}}>more_horiz</span>
+          More
+        </button>
       </nav>
+
+      {/* Mobile "More" Slide-up Sheet */}
+      {moreOpen && (
+        <>
+          {/* Backdrop */}
+          <div className="md:hidden fixed inset-0 bg-black/30 z-[55] animate-[fadeIn_150ms_ease-out]" onClick={() => setMoreOpen(false)} />
+          {/* Sheet */}
+          <div className="md:hidden fixed bottom-[72px] left-3 right-3 bg-white rounded-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.15)] z-[60] p-4 flex flex-col gap-1 animate-[slideUp_200ms_ease-out] border border-slate-100">
+            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
+            {extraItems.map((item) => {
+              const isActive = pathname?.startsWith(item.href);
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMoreOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-50 text-blue-600 font-semibold"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[22px]" style={isActive ? {fontVariationSettings: "'FILL' 1"} : {}}>
+                    {item.icon}
+                  </span>
+                  <span className="font-label-md text-[14px]">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      )}
     </>
   );
 }
