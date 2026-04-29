@@ -181,12 +181,19 @@ export function SettingsForm({ user, profile }: any) {
                 Become a Mentor
               </Link>
             )}
-            <form action="/auth/sign-out" method="POST" className="w-full">
-              <button type="submit" className="w-full whitespace-nowrap px-4 py-3 rounded-lg text-error hover:bg-error-container/20 font-label-md text-label-md flex items-center gap-3 transition-colors text-left">
-                <span className="material-symbols-outlined text-[20px]">logout</span>
-                Log Out
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                document.cookie = "peerly_mode=; path=/; max-age=0";
+                router.replace("/");
+                router.refresh();
+              }}
+              className="w-full whitespace-nowrap px-4 py-3 rounded-lg text-error hover:bg-error-container/20 font-label-md text-label-md flex items-center gap-3 transition-colors text-left"
+            >
+              <span className="material-symbols-outlined text-[20px]">logout</span>
+              Log Out
+            </button>
           </nav>
         </aside>
 

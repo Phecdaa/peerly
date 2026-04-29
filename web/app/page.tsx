@@ -392,7 +392,7 @@ export default function Home() {
             <ul className="space-y-4 font-body-sm text-[14px] text-inverse-on-surface/70">
               <li><Link className="hover:text-primary-fixed transition-colors" href="#">Help Center</Link></li>
               <li><Link className="hover:text-primary-fixed transition-colors" href="#">Safety Guidelines</Link></li>
-              <li><Link className="hover:text-primary-fixed transition-colors" href="#">Become a Mentor</Link></li>
+              <li><Link className="hover:text-primary-fixed transition-colors" href="/login">Become a Mentor</Link></li>
               <li><Link className="hover:text-primary-fixed transition-colors" href="#">University Partners</Link></li>
             </ul>
           </div>
