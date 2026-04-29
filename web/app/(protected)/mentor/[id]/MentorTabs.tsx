@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ReportButton } from "@/components/ReportButton";
 
 type TabsProps = {
@@ -26,6 +27,12 @@ export function MentorTabs({ profile, courses, average_rating, review_count, abo
 
   return (
     <>
+      <div className="mb-4 mt-2">
+        <Link href="/mentors" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary font-label-md transition-colors">
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          Back to Mentors
+        </Link>
+      </div>
       {/* Hero Section */}
       <section className="bg-surface rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/20 p-8 mb-lg flex flex-col md:flex-row items-start md:items-center gap-8 relative overflow-hidden mt-4">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary-container/20 rounded-full blur-[80px] -z-10 translate-x-1/2 -translate-y-1/2"></div>
