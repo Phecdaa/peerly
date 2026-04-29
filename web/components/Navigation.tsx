@@ -12,6 +12,7 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
     { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
     { label: "Mentors", href: "/mentors", icon: "school" },
     { label: "My Rooms", href: "/rooms", icon: "groups" },
+    { label: "Wallet", href: "/wallet", icon: "payments" },
   ];
 
   if (role === "admin") {
