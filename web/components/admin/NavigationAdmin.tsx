@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function AdminSidebar({ adminName }: { adminName?: string }) {
   const pathname = usePathname();
@@ -57,7 +58,9 @@ export function AdminSidebar({ adminName }: { adminName?: string }) {
           <span className="font-label-md">Settings</span>
         </Link>
         <button onClick={async () => {
-          window.location.href = '/login';
+          const supabase = getSupabaseBrowserClient();
+          await supabase.auth.signOut();
+          window.location.href = '/';
         }} className="flex w-full items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 rounded-lg active:scale-[0.98] cursor-pointer text-left">
           <span className="material-symbols-outlined">logout</span>
           <span className="font-label-md">Logout</span>

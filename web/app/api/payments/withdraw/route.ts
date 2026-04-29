@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function POST(request: NextRequest) {
   const supabase = await getSupabaseServerClient();
@@ -16,9 +17,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Data rekening tidak lengkap" }, { status: 400 });
   }
 
-  // Mock: In production, create a real withdrawal request
-  // For now, just log it as a payment record
-  const { error } = await supabase
+  // Use service client to bypass RLS
+  const service = getSupabaseServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (service as any)
     .from("payments")
     .insert({
       amount,
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
       status: "escrow",
       direction: "platform_to_mentor",
       provider: bank,
-      metadata: { account_number, account_name, bank },
+      metadata: { account_number, account_name, bank, user_id: user.id },
     });
 
   if (error) {
