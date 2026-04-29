@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -25,6 +25,24 @@ export function SettingsForm({ user, profile }: any) {
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const [activeSection, setActiveSection] = useState("personal-info");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Interface Mode Switch ──
+  const isApprovedMentor = profile.is_mentor && profile.mentor_status === "approved";
+  const [currentMode, setCurrentMode] = useState<"student" | "mentor">("student");
+
+  useEffect(() => {
+    // Read cookie on mount
+    const match = document.cookie.match(/(?:^|; )peerly_mode=([^;]*)/);
+    if (match && match[1] === "mentor" && isApprovedMentor) {
+      setCurrentMode("mentor");
+    }
+  }, [isApprovedMentor]);
+
+  function switchMode(newMode: "student" | "mentor") {
+    setCurrentMode(newMode);
+    document.cookie = `peerly_mode=${newMode}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    router.refresh();
+  }
 
   async function handleSave() {
     setLoading(true);
@@ -73,6 +91,72 @@ export function SettingsForm({ user, profile }: any) {
         <h1 className="font-h1 text-h1 text-on-surface mb-xs">Account Settings</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">Manage your personal details, academic profile, and preferences.</p>
       </div>
+
+      {/* ── Interface Mode Switch (only for approved mentors) ── */}
+      {isApprovedMentor && (
+        <div className="mb-lg bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="p-lg border-b border-outline-variant/30 bg-surface-bright/50">
+            <h2 className="font-h3 text-h3 text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>swap_horiz</span>
+              Interface Mode
+            </h2>
+            <p className="font-body-md text-body-md text-on-surface-variant mt-1">Beralih antara tampilan Mahasiswa dan Mentor.</p>
+          </div>
+          <div className="p-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+              {/* Student Mode Card */}
+              <button
+                onClick={() => switchMode("student")}
+                className={`relative flex flex-col items-center text-center p-lg rounded-xl border-2 transition-all duration-300 group ${
+                  currentMode === "student"
+                    ? "border-primary bg-primary-fixed/15 shadow-[0_8px_30px_rgba(0,88,190,0.12)]"
+                    : "border-outline-variant/50 bg-surface hover:border-primary/30 hover:bg-surface-container-low"
+                }`}
+              >
+                {currentMode === "student" && (
+                  <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                  </div>
+                )}
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-md transition-colors ${
+                  currentMode === "student" ? "bg-primary-container text-primary" : "bg-surface-container-high text-on-surface-variant group-hover:bg-primary-container/50 group-hover:text-primary"
+                }`}>
+                  <span className="material-symbols-outlined text-[28px]" style={currentMode === "student" ? { fontVariationSettings: "'FILL' 1" } : {}}>school</span>
+                </div>
+                <h3 className={`font-h3 text-[18px] mb-xs transition-colors ${
+                  currentMode === "student" ? "text-primary" : "text-on-surface"
+                }`}>Mode Mahasiswa</h3>
+                <p className="font-body-md text-[13px] text-on-surface-variant">Cari mentor, join room, dan belajar bersama.</p>
+              </button>
+
+              {/* Mentor Mode Card */}
+              <button
+                onClick={() => switchMode("mentor")}
+                className={`relative flex flex-col items-center text-center p-lg rounded-xl border-2 transition-all duration-300 group ${
+                  currentMode === "mentor"
+                    ? "border-secondary bg-secondary-container/20 shadow-[0_8px_30px_rgba(0,108,73,0.12)]"
+                    : "border-outline-variant/50 bg-surface hover:border-secondary/30 hover:bg-surface-container-low"
+                }`}
+              >
+                {currentMode === "mentor" && (
+                  <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                  </div>
+                )}
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-md transition-colors ${
+                  currentMode === "mentor" ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-high text-on-surface-variant group-hover:bg-secondary-container/50 group-hover:text-secondary"
+                }`}>
+                  <span className="material-symbols-outlined text-[28px]" style={currentMode === "mentor" ? { fontVariationSettings: "'FILL' 1" } : {}}>psychology</span>
+                </div>
+                <h3 className={`font-h3 text-[18px] mb-xs transition-colors ${
+                  currentMode === "mentor" ? "text-secondary" : "text-on-surface"
+                }`}>Mode Mentor</h3>
+                <p className="font-body-md text-[13px] text-on-surface-variant">Kelola jadwal, terima sesi, dan lihat earnings.</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-gutter items-start">
         {/* Inner Sidebar / Secondary Nav */}
