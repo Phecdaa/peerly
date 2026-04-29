@@ -21,6 +21,7 @@ export function Navigation({ role, isMentor, mentorStatus }: { role?: string, is
   
   if (isMentor && mentorStatus === "approved") {
     navItems.push({ label: "Jadwal", href: "/mentor/availability", icon: "calendar_month" });
+    navItems.push({ label: "Earnings", href: "/mentor/earnings", icon: "monitoring" });
   }
 
   navItems.push({ label: "Settings", href: "/settings", icon: "settings" });
